@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "opensatcom"
+version = "0.1.0"
+description = "Professional-grade open-source Python toolkit for satellite communications engineering"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "John Hodge", email = "jhodge007@gmail.com" }]
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "pyyaml>=6.0",
+    "pydantic>=2.0",
+    "matplotlib>=3.7",
+    "pyarrow>=12.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-timeout>=2.1",
+    "mypy>=1.5",
+    "ruff>=0.1",
+    "coverage>=7.0",
+]
+itur = ["itur>=1.7"]
+orbit = ["sgp4>=2.20", "skyfield>=1.45"]
+
+[project.scripts]
+opensatcom = "opensatcom.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/opensatcom"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: marks tests as integration tests",
+    "golden: marks tests as golden vector regression tests",
+]
+timeout = 60
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+ignore_missing_imports = true
