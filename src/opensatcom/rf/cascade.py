@@ -43,10 +43,19 @@ class CascadedRFChain:
 
     Parameters
     ----------
-    stages : list[RFStage]
+    stages : list of RFStage
         Ordered list of stages from input to output.
     tx_power_w : float
-        Transmit power at PA output in watts (for TX chain context).
+        Transmit power at PA output in watts (default 1.0).
+
+    Examples
+    --------
+    >>> chain = CascadedRFChain([
+    ...     RFStage("LNA", gain_db=20.0, nf_db=1.5),
+    ...     RFStage("BPF", gain_db=-2.0, nf_db=2.0),
+    ... ])
+    >>> chain.cascaded_nf_db()
+    1.52
     """
 
     def __init__(self, stages: list[RFStage], tx_power_w: float = 1.0) -> None:
@@ -70,11 +79,23 @@ class CascadedRFChain:
     # ---- Gain ----
 
     def total_gain_db(self) -> float:
-        """Total cascaded gain in dB (sum of all stage gains)."""
+        """Total cascaded gain in dB (sum of all stage gains).
+
+        Returns
+        -------
+        float
+            Total gain in dB.
+        """
         return sum(s.gain_db for s in self._stages)
 
     def total_gain_lin(self) -> float:
-        """Total cascaded gain as a linear ratio."""
+        """Total cascaded gain as a linear ratio.
+
+        Returns
+        -------
+        float
+            Total gain as a linear power ratio.
+        """
         return db10_to_lin(self.total_gain_db())
 
     # ---- Noise figure (Friis cascade) ----
@@ -83,6 +104,11 @@ class CascadedRFChain:
         """Cascaded noise figure in dB using Friis formula.
 
         F_total = F_1 + (F_2 - 1)/G_1 + (F_3 - 1)/(G_1 * G_2) + ...
+
+        Returns
+        -------
+        float
+            Cascaded noise figure in dB.
         """
         return lin_to_db10(self._cascaded_nf_lin())
 
@@ -100,6 +126,11 @@ class CascadedRFChain:
         """Equivalent input noise temperature from cascaded NF.
 
         T_e = T_ref * (F - 1)  where T_ref = 290 K.
+
+        Returns
+        -------
+        float
+            Equivalent noise temperature in Kelvin.
         """
         return T_REF_K * (self._cascaded_nf_lin() - 1.0)
 
@@ -110,7 +141,10 @@ class CascadedRFChain:
 
         1/IIP3_total = 1/IIP3_1 + G_1/IIP3_2 + G_1*G_2/IIP3_3 + ...
 
-        Returns None if no stage has an IIP3 spec.
+        Returns
+        -------
+        float or None
+            Cascaded IIP3 in dBm, or None if no stage has IIP3 defined.
         """
         # Collect stages with IIP3
         has_iip3 = any(s.iip3_dbm is not None for s in self._stages)
@@ -136,6 +170,11 @@ class CascadedRFChain:
 
         For a TX chain where stages represent post-PA losses (feed, cable,
         filter), this returns the magnitude of loss in dB (positive number).
+
+        Returns
+        -------
+        float
+            Total TX-path loss in dB (positive number, 0.0 if net gain).
         """
         total = self.total_gain_db()
         return -total if total < 0 else 0.0
@@ -145,7 +184,13 @@ class CascadedRFChain:
     def to_simple_rf_chain(self) -> RFChainModel:
         """Convert to the simple RFChainModel for backward compatibility.
 
-        Maps cascaded noise temp → rx_noise_temp_k, cascaded losses → tx_losses_db.
+        Maps cascaded noise temp to ``rx_noise_temp_k`` and cascaded
+        losses to ``tx_losses_db``.
+
+        Returns
+        -------
+        RFChainModel
+            Simplified RF chain model.
         """
         return RFChainModel(
             tx_power_w=self._tx_power_w,

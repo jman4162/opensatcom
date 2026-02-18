@@ -18,6 +18,29 @@ class InterferenceResult:
 
     All power values are in dB domain. Interference and noise are summed
     in linear domain then converted.
+
+    Parameters
+    ----------
+    serving_beam_id : str
+        Identifier of the beam serving this point.
+    signal_dbw : float
+        Received signal power from the serving beam in dBW.
+    interference_dbw : float
+        Total co-channel interference power from non-serving beams in dBW.
+    noise_dbw : float
+        Thermal noise power in dBW.
+    cnir_db : float
+        Carrier-to-noise-plus-interference ratio C/(N+I) in dB.
+    sinr_db : float
+        Signal-to-interference ratio C/I in dB (inf when no interference).
+    cn0_dbhz : float
+        Carrier-to-noise-density ratio C/N0 in dB-Hz.
+    ebn0_db : float
+        Energy-per-bit to noise-density ratio Eb/N0 in dB.
+    margin_db : float
+        Link margin relative to the scenario requirement in dB.
+    throughput_mbps : float or None
+        Achievable throughput in Mbps, or None if not computed.
     """
 
     serving_beam_id: str
@@ -60,13 +83,28 @@ class SimpleInterferenceModel:
 
         Parameters
         ----------
-        beamset : the multi-beam payload
-        serving_beam_id : which beam is serving this victim
-        victim_az_deg, victim_el_deg : direction to the victim (from satellite)
-        range_m : slant range to the victim
-        rx_antenna : victim's receive antenna model
-        rx_terminal : victim terminal (for system noise temp)
-        cond : propagation conditions
+        beamset : BeamSet
+            The multi-beam payload containing all beams.
+        serving_beam_id : str
+            Identifier of the beam serving this victim.
+        victim_az_deg : float
+            Azimuth direction to the victim from the satellite in degrees.
+        victim_el_deg : float
+            Elevation direction to the victim from the satellite in degrees.
+        range_m : float
+            Slant range to the victim in meters.
+        rx_antenna : AntennaModel
+            Victim's receive antenna model.
+        rx_terminal : Terminal
+            Victim terminal (provides system noise temperature).
+        cond : PropagationConditions
+            Propagation conditions for path loss evaluation.
+
+        Returns
+        -------
+        InterferenceResult
+            Interference evaluation result containing signal, interference,
+            noise powers, CNIR, SINR, C/N0, Eb/N0, and margin.
         """
         sc = beamset.scenario
         rf = beamset.rf_chain

@@ -17,10 +17,14 @@ class BeamSet:
 
     Parameters
     ----------
-    beams : list of Beam objects
-    scenario : link scenario (frequency, bandwidth, etc.)
-    propagation : propagation model for path loss computation
-    rf_chain : shared RF chain parameters
+    beams : list[Beam]
+        List of Beam objects forming the multi-beam payload.
+    scenario : Scenario
+        Link scenario defining frequency, bandwidth, and requirements.
+    propagation : PropagationModel
+        Propagation model used for path loss computation.
+    rf_chain : RFChainModel
+        Shared RF chain parameters (e.g., noise temperature).
     """
 
     def __init__(
@@ -37,7 +41,18 @@ class BeamSet:
         self.rf_chain = rf_chain
 
     def get_beam(self, beam_id: str) -> Beam:
-        """Look up a beam by its ID."""
+        """Look up a beam by its ID.
+
+        Parameters
+        ----------
+        beam_id : str
+            Unique identifier of the beam to retrieve.
+
+        Returns
+        -------
+        Beam
+            The beam matching the given ID.
+        """
         return self._beam_map[beam_id]
 
     @property

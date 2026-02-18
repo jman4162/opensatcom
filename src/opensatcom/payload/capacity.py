@@ -72,7 +72,8 @@ def compute_beam_map(
 
     Returns
     -------
-    BeamMap with one point per (az, el) grid combination.
+    BeamMap
+        Beam map with one ``BeamMapPoint`` per (az, el) grid combination.
     """
     model = SimpleInterferenceModel()
     f_hz = beamset.scenario.freq_hz

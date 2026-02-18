@@ -64,11 +64,27 @@ class RoundRobinScheduler:
     """Simple round-robin scheduler: equal share to each user.
 
     Each user gets capacity / n_users, capped at their demand.
+    Remaining capacity from users whose demand is below their equal
+    share is not redistributed.
     """
 
     def allocate(
         self, users: list[TrafficDemand], capacity_mbps: float
     ) -> dict[str, float]:
+        """Allocate capacity equally across users.
+
+        Parameters
+        ----------
+        users : list[TrafficDemand]
+            List of user traffic demands to schedule.
+        capacity_mbps : float
+            Total available capacity in Mbps.
+
+        Returns
+        -------
+        dict[str, float]
+            Mapping of user_id to allocated throughput in Mbps.
+        """
         if not users or capacity_mbps <= 0:
             return {u.user_id: 0.0 for u in users}
 

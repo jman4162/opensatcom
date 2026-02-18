@@ -14,14 +14,26 @@ def plot_constellation_coverage(
 ) -> Any:
     """Plotly polar plot of satellite tracks (az/el) with coverage cone.
 
+    Each satellite track is plotted in polar coordinates (azimuth as angle,
+    90 - elevation as radius so the zenith sits at the center). A dashed
+    circle marks the minimum-elevation visibility boundary.
+
     Parameters
     ----------
-    sat_tracks : dict[str, tuple[np.ndarray, np.ndarray]]
-        Satellite ID -> (azimuth_deg, elevation_deg) arrays.
-    min_elevation_deg : float
-        Minimum elevation for visibility cone.
+    sat_tracks : dict of {str: tuple of (np.ndarray, np.ndarray)}
+        Mapping from satellite ID to a ``(azimuth_deg, elevation_deg)``
+        pair of 1-D arrays describing the track.
+    min_elevation_deg : float, optional
+        Minimum elevation angle in degrees for the visibility cone circle.
+        Default is ``10.0``.
+    title : str, optional
+        Plot title. Default is ``"Satellite Coverage (Az/El)"``.
 
-    Returns plotly go.Figure.
+    Returns
+    -------
+    plotly.graph_objects.Figure
+        Interactive Plotly polar figure with satellite tracks and
+        minimum-elevation boundary.
     """
     import plotly.graph_objects as go
 

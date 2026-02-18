@@ -7,7 +7,22 @@ from opensatcom.core.protocols import ACMPolicy, PerformanceCurve
 
 
 class ModemModel:
-    """Modem that maps (Eb/N0, bandwidth, time) to throughput."""
+    """Modem that maps (Eb/N0, bandwidth, time) to throughput.
+
+    Composes a ModCod table, performance curves, and an ACM policy
+    to select the best modulation/coding and compute achievable throughput.
+
+    Parameters
+    ----------
+    modcods : list of ModCod
+        Available modulation and coding schemes.
+    curves : dict of str to PerformanceCurve
+        Performance curves keyed by ModCod name.
+    target_bler : float
+        Target block error rate threshold.
+    acm_policy : ACMPolicy
+        Adaptive coding and modulation selection policy.
+    """
 
     def __init__(
         self,
@@ -24,13 +39,26 @@ class ModemModel:
     def throughput_mbps(
         self, ebn0_db: float, bandwidth_hz: float, t_s: float
     ) -> dict[str, float | str]:
-        """Compute throughput for given conditions.
+        """Compute throughput for given channel conditions.
 
-        Returns dict with keys:
-        - throughput_mbps
-        - selected_modcod (name)
-        - spectral_eff_bps_per_hz
-        - bler_est
+        Parameters
+        ----------
+        ebn0_db : float
+            Current Eb/N0 in dB.
+        bandwidth_hz : float
+            Allocated bandwidth in Hz.
+        t_s : float
+            Current simulation time in seconds.
+
+        Returns
+        -------
+        dict
+            Result dictionary with keys:
+
+            - ``"throughput_mbps"`` — achievable throughput in Mbps
+            - ``"selected_modcod"`` — name of the selected ModCod
+            - ``"spectral_eff_bps_per_hz"`` — net spectral efficiency
+            - ``"bler_est"`` — estimated block error rate
         """
         selected = self.acm_policy.select_modcod(ebn0_db, t_s)
         spec_eff = selected.net_spectral_eff_bps_per_hz()

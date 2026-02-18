@@ -81,7 +81,25 @@ class RainAttenuationP618:
         range_m: float,
         cond: PropagationConditions,
     ) -> float:
-        """Compute rain attenuation in dB (additional loss beyond FSPL)."""
+        """Compute rain attenuation in dB (additional loss beyond FSPL).
+
+        Parameters
+        ----------
+        f_hz : float
+            Carrier frequency in Hz.
+        elev_deg : float
+            Elevation angle in degrees.
+        range_m : float
+            Slant range in metres (unused; path length derived from elevation).
+        cond : PropagationConditions
+            Environmental conditions; ``rain_rate_mm_per_hr`` is used as
+            fallback when not set at construction time.
+
+        Returns
+        -------
+        float
+            Rain attenuation in dB (0.0 if rain rate is zero or frequency < 1 GHz).
+        """
         rain_rate = self._rain_rate
         if rain_rate is None and cond.rain_rate_mm_per_hr is not None:
             rain_rate = cond.rain_rate_mm_per_hr

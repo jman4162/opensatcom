@@ -10,7 +10,19 @@ from opensatcom.core.units import lin_to_db10, w_to_dbw
 
 
 class DefaultLinkEngine:
-    """Snapshot link budget engine following spec Section 12."""
+    """Snapshot link budget engine following spec Section 12.
+
+    Computes EIRP, G/T, C/N0, Eb/N0, and margin for a single time instant.
+    Optionally computes throughput when a modem model is attached to
+    ``LinkInputs``.
+
+    Examples
+    --------
+    >>> engine = DefaultLinkEngine()
+    >>> result = engine.evaluate_snapshot(30.0, 0.0, range_m, link_inputs, cond)
+    >>> result.margin_db
+    12.34
+    """
 
     def evaluate_snapshot(
         self,
@@ -20,6 +32,29 @@ class DefaultLinkEngine:
         inputs: LinkInputs,
         cond: PropagationConditions,
     ) -> LinkOutputs:
+        """Evaluate a snapshot link budget.
+
+        Parameters
+        ----------
+        elev_deg : float
+            Elevation angle from the receive terminal to the transmit
+            terminal, in degrees.
+        az_deg : float
+            Azimuth angle in degrees.
+        range_m : float
+            Slant range between terminals in metres.
+        inputs : LinkInputs
+            Complete link configuration (terminals, antennas, propagation,
+            RF chain, and optional modem).
+        cond : PropagationConditions
+            Environmental / atmospheric conditions.
+
+        Returns
+        -------
+        LinkOutputs
+            Full link budget results including EIRP, G/T, C/N0, Eb/N0,
+            margin, optional throughput, and an itemised breakdown dict.
+        """
         sc = inputs.scenario
         rf = inputs.rf_chain
 

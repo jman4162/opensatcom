@@ -11,7 +11,23 @@ def render_snapshot_report(
     config: dict[str, Any],
     output_path: str | Path,
 ) -> Path:
-    """Generate standalone HTML report for a snapshot link budget."""
+    """Generate standalone HTML report for a snapshot link budget.
+
+    Parameters
+    ----------
+    breakdown : dict of str to float
+        Itemised link budget breakdown (keys are parameter names,
+        values in dB or Kelvin).
+    config : dict
+        Raw config dictionary for metadata display.
+    output_path : str or Path
+        File path for the generated HTML report.
+
+    Returns
+    -------
+    Path
+        Path to the written HTML file.
+    """
     output_path = Path(output_path)
 
     margin = breakdown.get("margin_db", 0.0)

@@ -56,12 +56,24 @@ DVB_S2_MODCODS: list[ModCod] = [
 
 
 def get_dvbs2_modcod_table() -> list[ModCod]:
-    """Return the full DVB-S2 ModCod table."""
+    """Return the full DVB-S2 ModCod table.
+
+    Returns
+    -------
+    list of ModCod
+        28 standard DVB-S2 ModCods (QPSK through 32APSK).
+    """
     return list(DVB_S2_MODCODS)
 
 
 def get_dvbs2_performance_curves() -> dict[str, PerformanceCurve]:
-    """Return analytic performance curves for all DVB-S2 ModCods."""
+    """Return analytic performance curves for all DVB-S2 ModCods.
+
+    Returns
+    -------
+    dict of str to PerformanceCurve
+        Analytic BER curves keyed by ModCod name.
+    """
     curves: dict[str, PerformanceCurve] = {}
     for name, bps, cr, req_ebn0 in _DVB_S2_TABLE:
         curves[name] = AnalyticBERCurve(

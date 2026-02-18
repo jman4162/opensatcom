@@ -73,7 +73,25 @@ class GaseousAbsorptionP676:
         range_m: float,
         cond: PropagationConditions,
     ) -> float:
-        """Compute gaseous absorption loss in dB."""
+        """Compute gaseous absorption loss in dB.
+
+        Parameters
+        ----------
+        f_hz : float
+            Carrier frequency in Hz.
+        elev_deg : float
+            Elevation angle in degrees.
+        range_m : float
+            Slant range in metres (unused; path derived from elevation).
+        cond : PropagationConditions
+            Environmental conditions (unused; water vapor set at construction).
+
+        Returns
+        -------
+        float
+            Combined dry-air and water-vapor absorption in dB
+            (0.0 if frequency < 1 GHz).
+        """
         f_ghz = f_hz / 1e9
         if f_ghz < 1.0:
             return 0.0

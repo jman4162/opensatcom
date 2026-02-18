@@ -20,7 +20,32 @@ def render_mission_report(
     output_path: str | Path,
     plots_dir: str | Path | None = None,
 ) -> Path:
-    """Generate standalone HTML report for a mission simulation."""
+    """Generate standalone HTML report for a mission simulation.
+
+    Parameters
+    ----------
+    summary : dict of str to float
+        Scalar summary metrics (availability, margin stats, etc.).
+    times_s : numpy.ndarray
+        Time stamps in seconds, shape ``(N,)``.
+    margin_db : numpy.ndarray
+        Link margin time series in dB, shape ``(N,)``.
+    elev_deg : numpy.ndarray
+        Elevation angles in degrees, shape ``(N,)``.
+    outages_mask : numpy.ndarray
+        Boolean outage mask, shape ``(N,)``.
+    config : dict
+        Raw config dictionary for metadata display.
+    output_path : str or Path
+        File path for the generated HTML report.
+    plots_dir : str, Path, or None
+        Optional directory to save static plot images alongside the report.
+
+    Returns
+    -------
+    Path
+        Path to the written HTML file.
+    """
     import matplotlib
 
     matplotlib.use("Agg")

@@ -16,7 +16,27 @@ def plot_pareto_interactive(
 ) -> Any:
     """Interactive Plotly scatter with Pareto front highlighted.
 
-    Returns plotly go.Figure.
+    Renders all design points as semi-transparent markers and overlays the
+    Pareto-optimal subset as a connected star-marker trace.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Full DOE / trade-study results containing at least *x_col* and
+        *y_col* columns.
+    x_col : str
+        Column name used for the x-axis (e.g., ``"cost_usd"``).
+    y_col : str
+        Column name used for the y-axis (e.g., ``"throughput_p50"``).
+    pareto_df : pd.DataFrame
+        Subset of *df* representing the Pareto-optimal designs.
+    title : str, optional
+        Plot title. Default is ``"Pareto Front Analysis"``.
+
+    Returns
+    -------
+    plotly.graph_objects.Figure
+        Interactive Plotly figure with all designs and the Pareto front.
     """
     import plotly.graph_objects as go
 
@@ -68,14 +88,25 @@ def plot_doe_parallel_coords(
 ) -> Any:
     """Parallel coordinates plot for DOE results.
 
+    Displays all numeric columns of the DOE results as parallel coordinate
+    axes, colored by the first objective column when provided.
+
     Parameters
     ----------
     df : pd.DataFrame
-        DOE results with parameter and objective columns.
-    objectives : list[str] | None
-        Columns to highlight as objectives (colored by first objective).
+        DOE results with parameter and objective columns. Only numeric
+        columns are included as axes.
+    objectives : list of str or None, optional
+        Column names to highlight as objectives. The first entry is used
+        as the color dimension. Default is ``None`` (color by the last
+        numeric column).
+    title : str, optional
+        Plot title. Default is ``"DOE Parallel Coordinates"``.
 
-    Returns plotly go.Figure.
+    Returns
+    -------
+    plotly.graph_objects.Figure
+        Interactive Plotly parallel-coordinates figure.
     """
     import plotly.graph_objects as go
 

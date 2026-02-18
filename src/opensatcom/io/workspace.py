@@ -11,7 +11,18 @@ import yaml
 
 
 class RunContext:
-    """Manages a run output directory and artifact saving."""
+    """Manages a run output directory and artifact saving.
+
+    Creates a timestamped directory under *output_dir* and provides
+    convenience methods for persisting configs, results, and plots.
+
+    Parameters
+    ----------
+    output_dir : str
+        Base output directory (default ``"./runs"``).
+    run_id : str
+        Optional identifier appended to the directory name.
+    """
 
     def __init__(self, output_dir: str = "./runs", run_id: str = "") -> None:
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -22,20 +33,53 @@ class RunContext:
         self.plots_dir.mkdir(exist_ok=True)
 
     def save_config_snapshot(self, config: dict[str, Any]) -> Path:
-        """Save config snapshot as YAML."""
+        """Save config snapshot as YAML.
+
+        Parameters
+        ----------
+        config : dict
+            Configuration dictionary to serialise.
+
+        Returns
+        -------
+        Path
+            Path to the saved YAML file.
+        """
         path = self.run_dir / "config_snapshot.yaml"
         with open(path, "w") as f:
             yaml.dump(config, f, default_flow_style=False, sort_keys=False)
         return path
 
     def save_results_parquet(self, df: pd.DataFrame) -> Path:
-        """Save results as parquet."""
+        """Save results as parquet.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            Results DataFrame.
+
+        Returns
+        -------
+        Path
+            Path to the saved parquet file.
+        """
         path = self.run_dir / "results.parquet"
         df.to_parquet(path, index=False)
         return path
 
     def save_breakdown_csv(self, df: pd.DataFrame) -> Path:
-        """Save link breakdown as CSV."""
+        """Save link breakdown as CSV.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            Breakdown DataFrame.
+
+        Returns
+        -------
+        Path
+            Path to the saved CSV file.
+        """
         path = self.run_dir / "link_breakdown.csv"
         df.to_csv(path, index=False)
         return path
@@ -48,7 +92,18 @@ class RunContext:
         return d
 
     def save_beammap_parquet(self, df: pd.DataFrame) -> Path:
-        """Save beam map results as parquet."""
+        """Save beam map results as parquet.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            Beam map DataFrame from ``BeamMap.to_dataframe()``.
+
+        Returns
+        -------
+        Path
+            Path to the saved parquet file.
+        """
         path = self.beam_maps_dir / "beam_map.parquet"
         df.to_parquet(path, index=False)
         return path

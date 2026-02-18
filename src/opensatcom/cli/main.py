@@ -1,4 +1,9 @@
-"""OpenSatCom CLI entry point."""
+"""OpenSatCom CLI entry point.
+
+Provides the ``opensatcom`` command with subcommands for snapshot evaluation,
+mission simulation, beam mapping, DOE, batch processing, Pareto extraction,
+and report generation.
+"""
 
 import argparse
 import sys
@@ -7,6 +12,13 @@ from pathlib import Path
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the CLI argument parser with all subcommands.
+
+    Returns
+    -------
+    argparse.ArgumentParser
+        Configured argument parser.
+    """
     parser = argparse.ArgumentParser(
         prog="opensatcom",
         description="Professional-grade satellite communications engineering toolkit",
@@ -53,7 +65,13 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def cmd_run(args: argparse.Namespace) -> None:
-    """Snapshot link evaluation."""
+    """Snapshot link evaluation.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Parsed CLI arguments with ``config`` path.
+    """
     import pandas as pd
 
     from opensatcom.cli.builders import build_link_inputs_from_config
@@ -110,7 +128,13 @@ def cmd_run(args: argparse.Namespace) -> None:
 
 
 def cmd_mission(args: argparse.Namespace) -> None:
-    """Time-series mission simulation."""
+    """Time-series mission simulation.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Parsed CLI arguments with ``config`` path.
+    """
     import numpy as np
     import pandas as pd
 
@@ -188,7 +212,13 @@ def cmd_mission(args: argparse.Namespace) -> None:
 
 
 def cmd_beammap(args: argparse.Namespace) -> None:
-    """Multi-beam capacity map evaluation."""
+    """Multi-beam capacity map evaluation.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Parsed CLI arguments with ``config`` path.
+    """
     from opensatcom.cli.builders import (
         _build_antenna,
         _build_terminal,
@@ -250,7 +280,13 @@ def cmd_beammap(args: argparse.Namespace) -> None:
 
 
 def cmd_report(args: argparse.Namespace) -> None:
-    """Generate report from results parquet."""
+    """Generate report from results parquet.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Parsed CLI arguments with ``results`` path and ``format``.
+    """
     import pandas as pd
 
     results_path = Path(args.results)
@@ -299,7 +335,13 @@ def cmd_report(args: argparse.Namespace) -> None:
 
 
 def cmd_doe(args: argparse.Namespace) -> None:
-    """Design of experiments — generate parameter cases."""
+    """Design of experiments — generate parameter cases.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Parsed CLI arguments with ``config`` path, ``n``, and ``method``.
+    """
     import yaml
 
     from opensatcom.trades.doe import DesignOfExperiments
@@ -331,7 +373,13 @@ def cmd_doe(args: argparse.Namespace) -> None:
 
 
 def cmd_batch(args: argparse.Namespace) -> None:
-    """Batch evaluation from parquet cases."""
+    """Batch evaluation from parquet cases.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Parsed CLI arguments with ``cases`` path and ``parallel`` flag.
+    """
     import pandas as pd
 
     from opensatcom.trades.batch import BatchRunner
@@ -352,7 +400,13 @@ def cmd_batch(args: argparse.Namespace) -> None:
 
 
 def cmd_pareto(args: argparse.Namespace) -> None:
-    """Pareto extraction from results."""
+    """Pareto extraction from results.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Parsed CLI arguments with ``results`` path, ``x``, and ``y`` columns.
+    """
     import pandas as pd
 
     from opensatcom.trades.pareto import extract_pareto_front, plot_pareto
@@ -380,6 +434,7 @@ def cmd_pareto(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
+    """CLI entry point — parse arguments and dispatch to subcommand handler."""
     parser = build_parser()
     args = parser.parse_args()
 

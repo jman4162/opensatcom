@@ -26,11 +26,13 @@ class AnalyticBERCurve:
     Parameters
     ----------
     bits_per_symbol : float
-        Bits per modulation symbol (2=QPSK, 3=8PSK, 4=16APSK, 5=32APSK).
+        Bits per modulation symbol (2 = QPSK, 3 = 8PSK, 4 = 16APSK,
+        5 = 32APSK).
     code_rate : float
-        FEC code rate (e.g. 0.5, 0.75).
+        FEC code rate (e.g., 0.5, 0.75).
     required_ebn0_ref_db : float
-        Reference required Eb/N0 at BLER=1e-5 from DVB-S2 standard.
+        Reference required Eb/N0 in dB at BLER = 1e-5 from the DVB-S2
+        standard. This anchors the waterfall curve.
     """
 
     def __init__(
@@ -48,6 +50,16 @@ class AnalyticBERCurve:
         """Estimate BLER at given Eb/N0 (dB).
 
         Uses a waterfall-shaped curve centered on the reference threshold.
+
+        Parameters
+        ----------
+        ebn0_db : float
+            Energy per bit to noise spectral density ratio in dB.
+
+        Returns
+        -------
+        float
+            Estimated block error rate, clamped to [1e-10, 1.0].
         """
         # Distance from threshold in dB
         delta = ebn0_db - self.required_ebn0_ref_db
@@ -62,6 +74,16 @@ class AnalyticBERCurve:
         """Find Eb/N0 required to achieve target BLER.
 
         Inverts the waterfall curve analytically.
+
+        Parameters
+        ----------
+        target_bler : float
+            Desired block error rate threshold.
+
+        Returns
+        -------
+        float
+            Required Eb/N0 in dB to achieve the target BLER.
         """
         if target_bler >= 0.5:
             return self.required_ebn0_ref_db - 5.0

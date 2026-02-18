@@ -14,7 +14,19 @@ from opensatcom.world.providers import PrecomputedTrajectory, StaticEnvironmentP
 
 
 class SimpleWorldSim:
-    """Tier 1 world simulation: single satellite ↔ terminal time-series."""
+    """Tier 1 world simulation: single satellite to terminal time-series.
+
+    Evaluates a snapshot link budget at each time step along a pre-computed
+    satellite pass, applying operational policy checks (minimum elevation)
+    and collecting margin, throughput, and outage statistics.
+
+    Examples
+    --------
+    >>> sim = SimpleWorldSim()
+    >>> result = sim.run(link_inputs, trajectory, OpsPolicy(), env)
+    >>> result.summary["availability"]
+    0.95
+    """
 
     def __init__(self) -> None:
         self._engine = DefaultLinkEngine()
@@ -26,6 +38,26 @@ class SimpleWorldSim:
         ops: OpsPolicy,
         env: StaticEnvironmentProvider,
     ) -> WorldSimOutputs:
+        """Run the Tier 1 simulation over a satellite pass.
+
+        Parameters
+        ----------
+        link_inputs : LinkInputs
+            Link configuration (terminals, antennas, propagation, RF chain).
+        trajectory : PrecomputedTrajectory
+            Pre-computed satellite trajectory with elevation, azimuth,
+            and range arrays.
+        ops : OpsPolicy
+            Operational constraints (min elevation, max scan angle).
+        env : StaticEnvironmentProvider
+            Environment provider for propagation conditions at each step.
+
+        Returns
+        -------
+        WorldSimOutputs
+            Time-series results with margin, throughput, outage mask,
+            and scalar summary statistics.
+        """
         pd = trajectory.pass_data
         n_steps = len(pd.times_s)
 

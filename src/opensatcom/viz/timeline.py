@@ -16,7 +16,27 @@ def plot_link_margin_timeline(
 ) -> Any:
     """Interactive link margin timeline with hover tooltips and outage shading.
 
-    Returns plotly go.Figure.
+    Parameters
+    ----------
+    times_s : np.ndarray
+        1-D array of time stamps in seconds.
+    margin_db : np.ndarray
+        1-D array of link margin values in dB, same length as *times_s*.
+    outages_mask : np.ndarray or None, optional
+        Boolean array indicating outage intervals (``True`` = outage).
+        When provided, outage points are plotted as red markers.
+        Default is ``None`` (no outage shading).
+    threshold_db : float, optional
+        Margin threshold in dB drawn as a horizontal dashed line.
+        Default is ``0.0``.
+    title : str, optional
+        Plot title. Default is ``"Link Margin vs Time"``.
+
+    Returns
+    -------
+    plotly.graph_objects.Figure
+        Interactive Plotly figure with margin trace, outage markers, and
+        threshold line.
     """
     import plotly.graph_objects as go
 
@@ -65,7 +85,19 @@ def plot_elevation_profile(
 ) -> Any:
     """Interactive elevation vs time plot.
 
-    Returns plotly go.Figure.
+    Parameters
+    ----------
+    times_s : np.ndarray
+        1-D array of time stamps in seconds.
+    elev_deg : np.ndarray
+        1-D array of elevation angles in degrees, same length as *times_s*.
+    title : str, optional
+        Plot title. Default is ``"Elevation Profile"``.
+
+    Returns
+    -------
+    plotly.graph_objects.Figure
+        Interactive Plotly figure showing elevation angle over time.
     """
     import plotly.graph_objects as go
 

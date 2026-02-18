@@ -37,5 +37,8 @@ artifacts/
 # Secrets
 .env
 
+# MkDocs build output
+site/
+
 # Large reference docs
 background_information.md

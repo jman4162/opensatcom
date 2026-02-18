@@ -9,7 +9,21 @@ import numpy as np
 
 @dataclass(frozen=True)
 class HandoverDecision:
-    """Result of a handover evaluation at one timestep."""
+    """Result of a handover evaluation at one timestep.
+
+    Parameters
+    ----------
+    selected_sat_idx : int
+        Index of the selected satellite in the candidate list.
+    selected_sat_id : str
+        Identifier of the selected satellite.
+    is_handover : bool
+        True if a handover occurred at this timestep.
+    margin_db : float
+        Link margin (dB) of the selected satellite.
+    all_margins_db : list[float]
+        Metric values for all candidate satellites at this timestep.
+    """
 
     selected_sat_idx: int
     selected_sat_id: str
@@ -52,7 +66,17 @@ class HandoverPolicy:
         self._last_handover_t: float = -np.inf
 
     def reset(self, initial_sat_idx: int = 0) -> None:
-        """Reset handover state for a new simulation run."""
+        """Reset handover state for a new simulation run.
+
+        Parameters
+        ----------
+        initial_sat_idx : int, optional
+            Index of the initially selected satellite (default 0).
+
+        Returns
+        -------
+        None
+        """
         self._current_sat_idx = initial_sat_idx
         self._last_handover_t = -np.inf
 

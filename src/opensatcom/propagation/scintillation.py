@@ -57,7 +57,25 @@ class ScintillationLoss:
         range_m: float,
         cond: PropagationConditions,
     ) -> float:
-        """Compute scintillation fade margin in dB."""
+        """Compute scintillation fade margin in dB.
+
+        Parameters
+        ----------
+        f_hz : float
+            Carrier frequency in Hz.
+        elev_deg : float
+            Elevation angle in degrees.
+        range_m : float
+            Slant range in metres (unused; derived from elevation).
+        cond : PropagationConditions
+            Environmental conditions; ``availability_target`` overrides
+            the constructor value if set.
+
+        Returns
+        -------
+        float
+            Scintillation fade margin in dB (0.0 if frequency < 1 GHz).
+        """
         f_ghz = f_hz / 1e9
         if f_ghz < 1.0:
             return 0.0

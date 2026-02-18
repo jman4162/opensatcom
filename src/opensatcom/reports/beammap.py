@@ -20,10 +20,24 @@ def render_beammap_report(
 ) -> Path:
     """Generate standalone HTML report for a beam map / capacity analysis.
 
-    Includes:
-    1. Per-beam summary table (beam_id, points served, mean SINR, mean margin)
-    2. SINR heatmap (scatter over az/el grid)
-    3. C/(N+I) heatmap
+    Includes per-beam summary table, SINR heatmap, and C/(N+I) heatmap.
+    Optionally embeds interactive Plotly maps when available.
+
+    Parameters
+    ----------
+    beam_map : BeamMap
+        Evaluated beam map with SINR, margin, and per-point results.
+    config : dict
+        Raw config dictionary for metadata display.
+    output_path : str or Path
+        File path for the generated HTML report.
+    plots_dir : str, Path, or None
+        Optional directory to save static plot images alongside the report.
+
+    Returns
+    -------
+    Path
+        Path to the written HTML file.
     """
     import matplotlib
 

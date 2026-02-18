@@ -18,7 +18,21 @@ from opensatcom.world.providers import PrecomputedTrajectory, StaticEnvironmentP
 
 @dataclass(frozen=True)
 class MultiSatWorldSimOutputs:
-    """Outputs from multi-satellite simulation, extends WorldSimOutputs."""
+    """Outputs from multi-satellite simulation, extends WorldSimOutputs.
+
+    Parameters
+    ----------
+    base : WorldSimOutputs
+        Base world simulation outputs (time-series margins, throughput, etc.).
+    selected_sat_id : list[str]
+        Satellite ID selected at each timestep.
+    handover_times_s : list[float]
+        Simulation times (seconds) at which handovers occurred.
+    n_handovers : int
+        Total number of handovers during the simulation.
+    per_sat_contact_s : dict[str, float]
+        Cumulative contact time (seconds) per satellite ID.
+    """
 
     base: WorldSimOutputs
     selected_sat_id: list[str]
@@ -71,6 +85,12 @@ class MultiSatWorldSim:
             Operational policy with min elevation and handover hysteresis.
         env : StaticEnvironmentProvider
             Environment conditions provider.
+
+        Returns
+        -------
+        MultiSatWorldSimOutputs
+            Combined time-series output including per-satellite contact
+            times and handover events.
         """
         if not trajectories:
             raise ValueError("At least one satellite trajectory required")

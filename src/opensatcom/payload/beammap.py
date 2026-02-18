@@ -13,7 +13,19 @@ from opensatcom.payload.interference import InterferenceResult
 
 @dataclass(frozen=True)
 class BeamMapPoint:
-    """A single evaluated point in the beam map grid."""
+    """A single evaluated point in the beam map grid.
+
+    Parameters
+    ----------
+    az_deg : float
+        Azimuth of the grid point in degrees.
+    el_deg : float
+        Elevation of the grid point in degrees.
+    serving_beam_id : str
+        Identifier of the beam serving this grid point.
+    result : InterferenceResult
+        Interference evaluation result at this point.
+    """
 
     az_deg: float
     el_deg: float
@@ -26,7 +38,9 @@ class BeamMap:
 
     Parameters
     ----------
-    points : list of BeamMapPoint, each holding interference evaluation results
+    points : list[BeamMapPoint]
+        List of evaluated beam map points, each holding interference
+        evaluation results for one grid location.
     """
 
     def __init__(self, points: list[BeamMapPoint]) -> None:
@@ -43,7 +57,16 @@ class BeamMap:
         return iter(self._points)
 
     def to_dataframe(self) -> pd.DataFrame:
-        """Export beam map to a DataFrame for analysis and persistence."""
+        """Export beam map to a DataFrame for analysis and persistence.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with columns: ``az_deg``, ``el_deg``,
+            ``serving_beam_id``, ``signal_dbw``, ``interference_dbw``,
+            ``noise_dbw``, ``cnir_db``, ``sinr_db``, ``cn0_dbhz``,
+            ``ebn0_db``, ``margin_db``, and ``throughput_mbps``.
+        """
         records = []
         for p in self._points:
             r = p.result
@@ -100,7 +123,11 @@ class BeamMap:
     def per_beam_summary(self) -> dict[str, dict[str, float]]:
         """Per-beam summary statistics.
 
-        Returns dict mapping beam_id -> {points_served, sinr_db_mean, margin_db_mean}.
+        Returns
+        -------
+        dict[str, dict[str, float]]
+            Mapping of ``beam_id`` to a dict containing
+            ``points_served``, ``sinr_db_mean``, and ``margin_db_mean``.
         """
         from collections import defaultdict
 

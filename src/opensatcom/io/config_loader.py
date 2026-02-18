@@ -1,4 +1,9 @@
-"""YAML config loading with Pydantic v2 validation."""
+"""YAML config loading with Pydantic v2 validation.
+
+All configuration sections are Pydantic ``BaseModel`` subclasses loaded
+from a YAML file via :func:`load_config`. Fields use SI units where
+applicable and match the names used in the corresponding core datamodels.
+"""
 
 from __future__ import annotations
 
@@ -10,12 +15,16 @@ from pydantic import BaseModel, field_validator
 
 
 class ProjectSection(BaseModel):
+    """Project metadata and output settings."""
+
     name: str
     seed: int = 42
     output_dir: str = "./runs"
 
 
 class ScenarioSection(BaseModel):
+    """Link scenario configuration (frequency, bandwidth, polarization)."""
+
     name: str
     direction: str
     freq_hz: float
@@ -34,6 +43,8 @@ class ScenarioSection(BaseModel):
 
 
 class TerminalSection(BaseModel):
+    """Single terminal definition (ground station or satellite)."""
+
     name: str
     lat_deg: float
     lon_deg: float
@@ -42,16 +53,22 @@ class TerminalSection(BaseModel):
 
 
 class TerminalsSection(BaseModel):
+    """TX and RX terminal pair."""
+
     tx: TerminalSection
     rx: TerminalSection
 
 
 class ParametricAntennaConfig(BaseModel):
+    """Configuration for a fixed-gain parametric antenna."""
+
     gain_dbi: float = 0.0
     scan_loss_model: str = "none"
 
 
 class PamAntennaConfig(BaseModel):
+    """Configuration for a PAM phased-array antenna."""
+
     nx: int = 1
     ny: int = 1
     dx_lambda: float = 0.5
@@ -62,6 +79,8 @@ class PamAntennaConfig(BaseModel):
 
 
 class CouplingConfig(BaseModel):
+    """EdgeFEM mutual-coupling configuration."""
+
     enabled: bool = False
     source: str = "edgefem"
     artifact_path: str | None = None
@@ -71,6 +90,8 @@ class CouplingConfig(BaseModel):
 
 
 class AntennaEndConfig(BaseModel):
+    """Antenna configuration for one end of the link (TX or RX)."""
+
     model: str = "parametric"
     parametric: ParametricAntennaConfig | None = None
     pam: PamAntennaConfig | None = None
@@ -78,11 +99,15 @@ class AntennaEndConfig(BaseModel):
 
 
 class AntennaSection(BaseModel):
+    """TX and RX antenna configuration pair."""
+
     tx: AntennaEndConfig
     rx: AntennaEndConfig
 
 
 class RFStageConfig(BaseModel):
+    """Configuration for a single RF stage in a cascaded chain."""
+
     name: str
     gain_db: float
     nf_db: float
@@ -90,6 +115,8 @@ class RFStageConfig(BaseModel):
 
 
 class RFChainSection(BaseModel):
+    """RF chain configuration (power, losses, noise, optional cascaded stages)."""
+
     tx_power_w: float
     tx_losses_db: float = 0.0
     rx_noise_temp_k: float = 0.0
@@ -97,17 +124,23 @@ class RFChainSection(BaseModel):
 
 
 class PropagationComponentConfig(BaseModel):
+    """Configuration for a single propagation loss component."""
+
     type: str
     availability_target: float | None = None
     climate_region: str | None = None
 
 
 class PropagationSection(BaseModel):
+    """Propagation model configuration with optional composite components."""
+
     model: str = "composite"
     components: list[PropagationComponentConfig] = []
 
 
 class ModemSection(BaseModel):
+    """Modem configuration (DVB-S2 ModCod table and ACM policy)."""
+
     enabled: bool = False
     target_bler: float = 1e-5
     modcod_table: str | None = None
@@ -116,6 +149,8 @@ class ModemSection(BaseModel):
 
 
 class WorldOpsPolicy(BaseModel):
+    """Operational policy constraints for world simulation."""
+
     min_elevation_deg: float = 10.0
     max_scan_deg: float = 60.0
     handover_hysteresis_s: float = 5.0
@@ -124,6 +159,8 @@ class WorldOpsPolicy(BaseModel):
 
 
 class WorldSection(BaseModel):
+    """World/mission simulation configuration (time window, trajectory)."""
+
     enabled: bool = False
     t0_s: float = 0.0
     t1_s: float = 600.0
@@ -134,17 +171,23 @@ class WorldSection(BaseModel):
 
 
 class ReportsSection(BaseModel):
+    """Report generation settings."""
+
     format: str = "html"
     include_plots: bool = True
 
 
 class CosineAntennaConfig(BaseModel):
+    """Configuration for a cosine-rolloff antenna pattern."""
+
     peak_gain_dbi: float
     theta_3db_deg: float
     sidelobe_floor_dbi: float = -20.0
 
 
 class BeamConfig(BaseModel):
+    """Configuration for a single beam in a multi-beam payload."""
+
     beam_id: str
     az_deg: float
     el_deg: float
@@ -161,6 +204,8 @@ class BeamConfig(BaseModel):
 
 
 class PayloadSection(BaseModel):
+    """Multi-beam payload configuration (beams, grid, beam selection)."""
+
     beams: list[BeamConfig]
     beam_selection: str = "max_gain"
     grid_az_range: list[float]
@@ -183,6 +228,8 @@ class PayloadSection(BaseModel):
 
 
 class ProjectConfig(BaseModel):
+    """Top-level project configuration combining all sections."""
+
     project: ProjectSection
     scenario: ScenarioSection
     terminals: TerminalsSection
@@ -196,7 +243,23 @@ class ProjectConfig(BaseModel):
 
 
 def load_config(path: str | Path) -> ProjectConfig:
-    """Load and validate a YAML config file."""
+    """Load and validate a YAML config file.
+
+    Parameters
+    ----------
+    path : str or Path
+        Path to the YAML configuration file.
+
+    Returns
+    -------
+    ProjectConfig
+        Validated project configuration.
+
+    Raises
+    ------
+    pydantic.ValidationError
+        If the YAML content fails schema validation.
+    """
     with open(path) as f:
         raw = yaml.safe_load(f)
     return ProjectConfig.model_validate(raw)

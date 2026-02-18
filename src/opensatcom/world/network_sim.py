@@ -19,7 +19,20 @@ from opensatcom.world.traffic import TrafficProfile
 
 @dataclass
 class NetworkSimOutputs:
-    """Outputs from network-level simulation, extends MultiSatWorldSimOutputs."""
+    """Outputs from network-level simulation, extends MultiSatWorldSimOutputs.
+
+    Parameters
+    ----------
+    base : MultiSatWorldSimOutputs
+        Underlying multi-satellite simulation outputs.
+    per_user_throughput_mbps : dict[str, np.ndarray]
+        Allocated throughput (Mbps) time-series per user ID.
+    total_capacity_mbps : np.ndarray
+        Total available link capacity (Mbps) at each timestep.
+    user_satisfaction : dict[str, float]
+        Fraction of total demand served over the simulation, per user ID
+        (0.0 = none served, 1.0 = fully served).
+    """
 
     base: MultiSatWorldSimOutputs
     per_user_throughput_mbps: dict[str, np.ndarray]
@@ -65,7 +78,27 @@ class NetworkWorldSim:
         env: StaticEnvironmentProvider,
         traffic_profile: TrafficProfile,
     ) -> NetworkSimOutputs:
-        """Run network simulation with traffic scheduling."""
+        """Run network simulation with traffic scheduling.
+
+        Parameters
+        ----------
+        link_inputs : LinkInputs
+            Base link inputs (antenna, RF chain, scenario).
+        trajectories : dict[str, PrecomputedTrajectory]
+            Satellite trajectories keyed by satellite ID.
+        ops : OpsPolicy
+            Operational policy with min elevation and handover hysteresis.
+        env : StaticEnvironmentProvider
+            Environment conditions provider.
+        traffic_profile : TrafficProfile
+            Time-varying traffic demand profile for all users.
+
+        Returns
+        -------
+        NetworkSimOutputs
+            Network-level outputs including per-user throughput allocation
+            and satisfaction metrics.
+        """
         # First run the multi-sat sim to get link-level results
         multi_sim = MultiSatWorldSim()
         multi_out = multi_sim.run(link_inputs, trajectories, ops, env)

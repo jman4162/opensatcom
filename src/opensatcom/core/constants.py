@@ -1,4 +1,23 @@
-"""Physical constants used throughout OpenSatCom."""
+"""Physical constants used throughout OpenSatCom.
+
+All constants are in SI units.
+
+.. list-table:: Constants
+   :header-rows: 1
+
+   * - Name
+     - Value
+     - Unit
+   * - ``SPEED_OF_LIGHT_MPS``
+     - 299 792 458
+     - m/s
+   * - ``BOLTZMANN_DBW_PER_K_HZ``
+     - -228.6
+     - dBW/(K Hz)
+   * - ``EARTH_RADIUS_M``
+     - 6 371 000
+     - m
+"""
 
 from __future__ import annotations
 

@@ -1,0 +1,104 @@
+site_name: OpenSatCom
+site_url: https://jman4162.github.io/opensatcom/
+site_description: Professional-grade open-source Python toolkit for satellite communications engineering
+site_author: John Hodge
+repo_name: jman4162/opensatcom
+repo_url: https://github.com/jman4162/opensatcom
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: deep orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: deep orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - content.code.copy
+    - content.tabs.link
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
+            merge_init_into_class: true
+            show_if_no_docstring: false
+            signature_crossrefs: true
+            separate_signature: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.arithmatex:
+      generic: true
+  - toc:
+      permalink: true
+  - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/jman4162/opensatcom
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/opensatcom/
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quickstart: getting-started/quickstart.md
+  - CLI Reference: cli.md
+  - API Reference:
+      - Core:
+          - Models: api/core/models.md
+          - Protocols: api/core/protocols.md
+          - Units & Constants: api/core/units.md
+      - Antenna: api/antenna.md
+      - RF Chain: api/rf.md
+      - Propagation: api/propagation.md
+      - Geometry: api/geometry.md
+      - Modem: api/modem.md
+      - Link Engine: api/link.md
+      - Payload: api/payload.md
+      - World Simulation: api/world.md
+      - Trade Studies: api/trades.md
+      - Visualization: api/viz.md
+      - Reports: api/reports.md
+      - I/O & Config: api/io.md
+  - Notebooks: notebooks.md
+  - Citation: citation.md

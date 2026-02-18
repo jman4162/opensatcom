@@ -18,6 +18,11 @@ def slant_range_m(terminal_alt_m: float, sat_alt_m: float, elev_deg: float) -> f
         Satellite altitude above sea level (m).
     elev_deg : float
         Elevation angle from terminal to satellite (degrees).
+
+    Returns
+    -------
+    float
+        Slant range in metres.
     """
     r_t = EARTH_RADIUS_M + terminal_alt_m
     r_s = EARTH_RADIUS_M + sat_alt_m
@@ -33,7 +38,22 @@ def slant_range_m(terminal_alt_m: float, sat_alt_m: float, elev_deg: float) -> f
 
 
 def elevation_deg(terminal_alt_m: float, sat_alt_m: float, range_m: float) -> float:
-    """Compute elevation angle given slant range (inverse of slant_range_m)."""
+    """Compute elevation angle given slant range (inverse of slant_range_m).
+
+    Parameters
+    ----------
+    terminal_alt_m : float
+        Terminal altitude above sea level in metres.
+    sat_alt_m : float
+        Satellite altitude above sea level in metres.
+    range_m : float
+        Slant range in metres.
+
+    Returns
+    -------
+    float
+        Elevation angle in degrees.
+    """
     r_t = EARTH_RADIUS_M + terminal_alt_m
     r_s = EARTH_RADIUS_M + sat_alt_m
 

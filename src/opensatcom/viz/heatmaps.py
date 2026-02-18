@@ -17,11 +17,19 @@ def plot_beam_map_interactive(
     Parameters
     ----------
     beam_map_df : pd.DataFrame
-        DataFrame with columns: az_deg, el_deg, sinr_db, margin_db, beam_id, etc.
-    metric : str
-        Metric column to color by.
+        DataFrame with columns including ``az_deg``, ``el_deg``, and one or
+        more metric columns (e.g., ``sinr_db``, ``margin_db``, ``beam_id``).
+    metric : str, optional
+        Name of the column used for marker color scaling.
+        Default is ``"sinr_db"``.
+    title : str, optional
+        Plot title. Default is ``"Beam Coverage Map"``.
 
-    Returns plotly go.Figure.
+    Returns
+    -------
+    plotly.graph_objects.Figure
+        Interactive Plotly scatter plot of beam positions colored by the
+        selected metric, with per-point hover details.
     """
     import plotly.graph_objects as go
 
@@ -65,7 +73,25 @@ def plot_rain_attenuation_surface(
 ) -> Any:
     """3D surface plot of rain loss vs frequency vs elevation.
 
-    Returns plotly go.Figure.
+    Computes rain attenuation using the ITU-R P.618 model over a grid of
+    frequencies and elevation angles, then renders an interactive 3-D surface.
+
+    Parameters
+    ----------
+    freqs_ghz : np.ndarray
+        1-D array of carrier frequencies in GHz (x-axis).
+    elevs_deg : np.ndarray
+        1-D array of elevation angles in degrees (y-axis).
+    rain_rate_mm_per_hr : float, optional
+        Rain rate used by the P.618 model, in mm/hr. Default is ``25.0``.
+    title : str, optional
+        Plot title. Default is ``"Rain Attenuation vs Frequency & Elevation"``.
+
+    Returns
+    -------
+    plotly.graph_objects.Figure
+        Interactive Plotly 3-D surface figure with frequency on the x-axis,
+        elevation on the y-axis, and rain loss in dB on the z-axis.
     """
     import plotly.graph_objects as go
 

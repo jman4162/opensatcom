@@ -13,6 +13,22 @@ class HysteresisACMPolicy:
     Step down (to lower ModCod) immediately when Eb/N0 drops below threshold.
     Step up (to higher ModCod) only when Eb/N0 exceeds threshold + hysteresis
     and hold time has elapsed since last switch.
+
+    Parameters
+    ----------
+    modcods : list[ModCod]
+        Available ModCod configurations to select from.
+    curves : dict[str, PerformanceCurve]
+        Mapping of ModCod name to its performance curve, used to look up
+        the required Eb/N0 for each ModCod at the target BLER.
+    target_bler : float
+        Target block error rate used to compute Eb/N0 thresholds.
+    hysteresis_db : float, optional
+        Additional Eb/N0 margin (in dB) required to step up to a higher
+        ModCod, preventing rapid oscillation. Default is 0.5.
+    hold_time_s : float, optional
+        Minimum time (in seconds) that must elapse after the last ModCod
+        switch before an upstep is permitted. Default is 2.0.
     """
 
     def __init__(
@@ -43,7 +59,20 @@ class HysteresisACMPolicy:
         self._last_switch_t_s = -float("inf")
 
     def select_modcod(self, ebn0_db: float, t_s: float) -> ModCod:
-        """Select ModCod based on current Eb/N0 and time."""
+        """Select ModCod based on current Eb/N0 and time.
+
+        Parameters
+        ----------
+        ebn0_db : float
+            Current measured Eb/N0 in dB.
+        t_s : float
+            Current simulation time in seconds.
+
+        Returns
+        -------
+        ModCod
+            The selected ModCod for the current link conditions.
+        """
         # Immediate downstep if current ModCod can't be supported
         while (
             self._current_idx > 0
@@ -64,6 +93,11 @@ class HysteresisACMPolicy:
         return self._modcods[self._current_idx]
 
     def reset(self) -> None:
-        """Reset ACM state."""
+        """Reset ACM state.
+
+        Returns
+        -------
+        None
+        """
         self._current_idx = 0
         self._last_switch_t_s = -float("inf")

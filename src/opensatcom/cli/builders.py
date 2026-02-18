@@ -32,6 +32,18 @@ from opensatcom.propagation.fspl import FreeSpacePropagation
 
 
 def _build_terminal(cfg: TerminalSection) -> Terminal:
+    """Build a Terminal from a config section.
+
+    Parameters
+    ----------
+    cfg : TerminalSection
+        Terminal configuration.
+
+    Returns
+    -------
+    Terminal
+        Constructed terminal dataclass.
+    """
     return Terminal(
         name=cfg.name,
         lat_deg=cfg.lat_deg,
@@ -42,6 +54,18 @@ def _build_terminal(cfg: TerminalSection) -> Terminal:
 
 
 def _build_antenna(cfg: AntennaEndConfig) -> AntennaModel:
+    """Build an antenna model from config.
+
+    Parameters
+    ----------
+    cfg : AntennaEndConfig
+        Antenna endpoint configuration.
+
+    Returns
+    -------
+    AntennaModel
+        Constructed antenna (parametric, PAM, or coupling-aware).
+    """
     # Coupling-aware antenna from EdgeFEM artifact
     if cfg.coupling is not None and cfg.coupling.enabled:
         from opensatcom.antenna.coupling import CouplingAwareAntenna
@@ -76,6 +100,18 @@ def _build_antenna(cfg: AntennaEndConfig) -> AntennaModel:
 
 
 def _build_propagation(cfg: PropagationSection) -> PropagationModel:
+    """Build a propagation model from config.
+
+    Parameters
+    ----------
+    cfg : PropagationSection
+        Propagation configuration with component list.
+
+    Returns
+    -------
+    PropagationModel
+        Composite propagation model.
+    """
     from opensatcom.propagation.gas import GaseousAbsorptionP676
     from opensatcom.propagation.rain import RainAttenuationP618
     from opensatcom.propagation.scintillation import ScintillationLoss
@@ -105,7 +141,18 @@ def _build_propagation(cfg: PropagationSection) -> PropagationModel:
 
 
 def _build_rf_chain(cfg: RFChainSection) -> RFChainModel:
-    """Build RFChainModel, using cascaded stages if present."""
+    """Build RFChainModel, using cascaded stages if present.
+
+    Parameters
+    ----------
+    cfg : RFChainSection
+        RF chain configuration.
+
+    Returns
+    -------
+    RFChainModel
+        Simple RF chain model (cascaded stages are collapsed).
+    """
     if cfg.stages:
         from opensatcom.rf.cascade import CascadedRFChain, RFStage
 
@@ -128,7 +175,18 @@ def _build_rf_chain(cfg: RFChainSection) -> RFChainModel:
 
 
 def _build_modem(cfg_modem: ModemSection) -> Any:
-    """Build ModemModel from config, defaulting to DVB-S2 built-in table."""
+    """Build ModemModel from config, defaulting to DVB-S2 built-in table.
+
+    Parameters
+    ----------
+    cfg_modem : ModemSection
+        Modem configuration.
+
+    Returns
+    -------
+    ModemModel
+        Configured modem with ModCod table, curves, and ACM policy.
+    """
     from opensatcom.modem.acm import HysteresisACMPolicy
     from opensatcom.modem.dvbs2 import get_dvbs2_modcod_table, get_dvbs2_performance_curves
     from opensatcom.modem.modem import ModemModel
@@ -160,7 +218,18 @@ def _build_modem(cfg_modem: ModemSection) -> Any:
 
 
 def build_link_inputs_from_config(cfg: ProjectConfig) -> LinkInputs:
-    """Build LinkInputs from a validated ProjectConfig."""
+    """Build LinkInputs from a validated ProjectConfig.
+
+    Parameters
+    ----------
+    cfg : ProjectConfig
+        Validated project configuration.
+
+    Returns
+    -------
+    LinkInputs
+        Complete link inputs ready for engine evaluation.
+    """
     tx_terminal = _build_terminal(cfg.terminals.tx)
     rx_terminal = _build_terminal(cfg.terminals.rx)
 
@@ -198,7 +267,20 @@ def build_link_inputs_from_config(cfg: ProjectConfig) -> LinkInputs:
 
 
 def _build_beam_antenna(beam_cfg: BeamConfig) -> AntennaModel:
-    """Build antenna for a beam — uses cosine config if present, else standard dispatch."""
+    """Build antenna for a beam.
+
+    Uses cosine config if present, otherwise falls back to standard dispatch.
+
+    Parameters
+    ----------
+    beam_cfg : BeamConfig
+        Beam configuration with antenna settings.
+
+    Returns
+    -------
+    AntennaModel
+        Constructed antenna for this beam.
+    """
     if beam_cfg.cosine is not None:
         c = beam_cfg.cosine
         return CosineRolloffAntenna(
@@ -212,7 +294,18 @@ def _build_beam_antenna(beam_cfg: BeamConfig) -> AntennaModel:
 
 
 def build_beamset_from_config(cfg: ProjectConfig) -> BeamSet:
-    """Build a BeamSet from a validated ProjectConfig with payload section."""
+    """Build a BeamSet from a validated ProjectConfig with payload section.
+
+    Parameters
+    ----------
+    cfg : ProjectConfig
+        Validated project configuration (must include ``payload``).
+
+    Returns
+    -------
+    BeamSet
+        Constructed beam set with all configured beams.
+    """
     if cfg.payload is None:
         raise ValueError("Config must have a 'payload' section for beammap command")
 
@@ -246,7 +339,18 @@ def build_beamset_from_config(cfg: ProjectConfig) -> BeamSet:
 
 
 def build_beam_grid(cfg: ProjectConfig) -> tuple[np.ndarray, np.ndarray]:
-    """Build az/el evaluation grid from config payload section."""
+    """Build az/el evaluation grid from config payload section.
+
+    Parameters
+    ----------
+    cfg : ProjectConfig
+        Validated project configuration (must include ``payload``).
+
+    Returns
+    -------
+    tuple of (numpy.ndarray, numpy.ndarray)
+        ``(grid_az, grid_el)`` arrays in degrees.
+    """
     if cfg.payload is None:
         raise ValueError("Config must have a 'payload' section")
 

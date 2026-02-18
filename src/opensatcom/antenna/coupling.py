@@ -21,9 +21,12 @@ class CouplingAwareAntenna:
 
     Parameters
     ----------
-    coupling_data : CouplingData from EdgeFEM artifact loading
-    steering_az_deg : beam steering azimuth (default 0)
-    steering_el_deg : beam steering elevation (default 0)
+    coupling_data : CouplingData
+        Coupling data loaded from an EdgeFEM artifact.
+    steering_az_deg : float
+        Beam steering azimuth in degrees (default 0.0).
+    steering_el_deg : float
+        Beam steering elevation in degrees (default 0.0).
     """
 
     def __init__(
@@ -84,8 +87,15 @@ class CouplingAwareAntenna:
 
         Parameters
         ----------
-        theta_deg : azimuth angles, shape (N,)
-        phi_deg : elevation angles, shape (N,)
+        theta_deg : numpy.ndarray
+            Azimuth angles in degrees, shape ``(N,)``.
+        phi_deg : numpy.ndarray
+            Elevation angles in degrees, shape ``(N,)``.
+
+        Returns
+        -------
+        numpy.ndarray
+            Linear gain values, shape ``(N,)``.
         """
         data = self._data
         n_dir = len(theta_deg)
@@ -154,9 +164,17 @@ class CouplingAwareAntenna:
 
         Parameters
         ----------
-        theta_deg : azimuth angles
-        phi_deg : elevation angles
-        f_hz : frequency (used for reference; pattern data at nearest freq)
+        theta_deg : numpy.ndarray
+            Azimuth angles in degrees.
+        phi_deg : numpy.ndarray
+            Elevation angles in degrees.
+        f_hz : float
+            Carrier frequency in Hz (for reference; pattern data at nearest freq).
+
+        Returns
+        -------
+        numpy.ndarray
+            Gain values in dBi, same shape as *theta_deg*.
         """
         gain_lin = self._evaluate_array_gain(theta_deg, phi_deg)
         # Normalize to directivity: 4*pi * gain / (sum over sphere)
@@ -168,7 +186,24 @@ class CouplingAwareAntenna:
     def eirp_dbw(
         self, theta_deg: float, phi_deg: float, f_hz: float, tx_power_w: float
     ) -> float:
-        """EIRP in the given direction."""
+        """Compute EIRP in a given direction.
+
+        Parameters
+        ----------
+        theta_deg : float
+            Azimuth angle in degrees.
+        phi_deg : float
+            Elevation angle in degrees.
+        f_hz : float
+            Carrier frequency in Hz.
+        tx_power_w : float
+            Transmit power in watts.
+
+        Returns
+        -------
+        float
+            EIRP in dBW.
+        """
         g = self.gain_dbi(np.array([theta_deg]), np.array([phi_deg]), f_hz)
         return w_to_dbw(tx_power_w) + float(g[0])
 
@@ -179,6 +214,21 @@ class CouplingAwareAntenna:
         steering_az_deg: float = 0.0,
         steering_el_deg: float = 0.0,
     ) -> CouplingAwareAntenna:
-        """Load coupling data from .npz and construct antenna."""
+        """Load coupling data from .npz and construct antenna.
+
+        Parameters
+        ----------
+        artifact_path : str or Path
+            Path to the ``.npz`` file containing EdgeFEM coupling data.
+        steering_az_deg : float
+            Beam steering azimuth in degrees (default 0.0).
+        steering_el_deg : float
+            Beam steering elevation in degrees (default 0.0).
+
+        Returns
+        -------
+        CouplingAwareAntenna
+            Constructed antenna with loaded coupling data.
+        """
         data = load_npz_artifact(artifact_path)
         return cls(data, steering_az_deg, steering_el_deg)

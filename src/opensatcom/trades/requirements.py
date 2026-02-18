@@ -23,13 +23,29 @@ class RequirementsTemplate:
     parameters: dict[str, tuple[float, float]] = field(default_factory=dict)
 
     def add(self, name: str, lo: float, hi: float) -> None:
-        """Add a parameter with its range."""
+        """Add a parameter with its range.
+
+        Parameters
+        ----------
+        name : str
+            Parameter name (must be unique).
+        lo : float
+            Lower bound of the sweep range.
+        hi : float
+            Upper bound of the sweep range.
+        """
         if lo > hi:
             raise ValueError(f"lo ({lo}) must be <= hi ({hi}) for parameter '{name}'")
         self.parameters[name] = (lo, hi)
 
     def to_parameter_space(self) -> dict[str, tuple[float, float]]:
-        """Return the parameter space as a dict of (min, max) tuples."""
+        """Return the parameter space as a dict of (min, max) tuples.
+
+        Returns
+        -------
+        dict of str to tuple of (float, float)
+            Parameter names mapped to ``(lo, hi)`` bounds.
+        """
         return dict(self.parameters)
 
     @property
