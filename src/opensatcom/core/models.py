@@ -135,6 +135,8 @@ class LinkOutputs:
     ebn0_db: float
     margin_db: float
     throughput_mbps: float | None = None
+    interference_dbw: float | None = None
+    sinr_db: float | None = None
     breakdown: dict[str, float] | None = None
 
 

@@ -45,6 +45,10 @@ def build_parser() -> argparse.ArgumentParser:
     pareto_parser.add_argument("--x", required=True, help="X-axis metric")
     pareto_parser.add_argument("--y", required=True, help="Y-axis metric")
 
+    # opensatcom beammap
+    beammap_parser = sub.add_parser("beammap", help="Multi-beam capacity map evaluation")
+    beammap_parser.add_argument("config", help="Path to YAML config file")
+
     return parser
 
 
@@ -183,6 +187,68 @@ def cmd_mission(args: argparse.Namespace) -> None:
     print(f"Artifacts saved to: {ctx.run_dir}")
 
 
+def cmd_beammap(args: argparse.Namespace) -> None:
+    """Multi-beam capacity map evaluation."""
+    from opensatcom.cli.builders import (
+        _build_antenna,
+        _build_terminal,
+        build_beam_grid,
+        build_beamset_from_config,
+    )
+    from opensatcom.core.models import PropagationConditions
+    from opensatcom.geometry.slant import slant_range_m
+    from opensatcom.io.config_loader import load_config
+    from opensatcom.io.workspace import RunContext
+    from opensatcom.payload.capacity import compute_beam_map
+    from opensatcom.reports.beammap import render_beammap_report
+
+    cfg = load_config(args.config)
+
+    if cfg.payload is None:
+        print("Error: 'payload' section required for beammap command", file=sys.stderr)
+        sys.exit(2)
+
+    beamset = build_beamset_from_config(cfg)
+    grid_az, grid_el = build_beam_grid(cfg)
+
+    # RX antenna and terminal
+    rx_antenna = _build_antenna(cfg.antenna.rx)
+    rx_terminal = _build_terminal(cfg.terminals.rx)
+
+    # Compute slant range
+    elev_deg = 30.0
+    range_m = slant_range_m(
+        cfg.terminals.rx.alt_m,
+        cfg.terminals.tx.alt_m,
+        elev_deg,
+    )
+
+    beam_map = compute_beam_map(
+        beamset, grid_az, grid_el,
+        rx_antenna, rx_terminal, range_m,
+        PropagationConditions(),
+        beam_selection=cfg.payload.beam_selection,
+    )
+
+    # Save artifacts
+    ctx = RunContext(output_dir=cfg.project.output_dir, run_id=cfg.project.name)
+    ctx.save_config_snapshot(cfg.model_dump())
+    ctx.save_beammap_parquet(beam_map.to_dataframe())
+
+    render_beammap_report(
+        beam_map, cfg.model_dump(),
+        ctx.run_dir / "report.html",
+        plots_dir=ctx.plots_dir,
+    )
+
+    print("Beam map evaluation complete.")
+    print(f"  Beams:        {len(beamset)}")
+    print(f"  Grid points:  {len(beam_map)}")
+    print(f"  Mean SINR:    {beam_map.sinr_db_mean:.2f} dB")
+    print(f"  Mean margin:  {beam_map.margin_db_mean:.2f} dB")
+    print(f"Artifacts saved to: {ctx.run_dir}")
+
+
 def cmd_report(args: argparse.Namespace) -> None:
     """Generate report from results parquet."""
     import pandas as pd
@@ -243,6 +309,7 @@ def main() -> None:
     dispatch = {
         "run": cmd_run,
         "mission": cmd_mission,
+        "beammap": cmd_beammap,
         "report": cmd_report,
     }
 

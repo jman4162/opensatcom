@@ -1,0 +1,89 @@
+project:
+  name: "geo_multibeam"
+  seed: 42
+  output_dir: "./runs"
+
+scenario:
+  name: "downlink_ka_multibeam"
+  direction: "downlink"
+  freq_hz: 19.7e9
+  bandwidth_hz: 200e6
+  polarization: "RHCP"
+  required_metric: "ebn0_db"
+  required_value: 6.0
+
+terminals:
+  tx:
+    name: "geo_payload"
+    lat_deg: 0.0
+    lon_deg: 0.0
+    alt_m: 35786000.0
+  rx:
+    name: "user_terminal"
+    lat_deg: 47.6062
+    lon_deg: -122.3321
+    alt_m: 50.0
+    system_noise_temp_k: 500.0
+
+antenna:
+  tx:
+    model: "parametric"
+    parametric:
+      gain_dbi: 35.0
+  rx:
+    model: "parametric"
+    parametric:
+      gain_dbi: 35.0
+
+rf_chain:
+  tx_power_w: 100.0
+  tx_losses_db: 0.0
+  rx_noise_temp_k: 500.0
+
+propagation:
+  model: "composite"
+  components:
+    - type: "fspl"
+
+payload:
+  beam_selection: "max_gain"
+  grid_az_range: [-10.0, 10.0]
+  grid_el_range: [-10.0, 10.0]
+  grid_step_deg: 5.0
+  beams:
+    - beam_id: "B0"
+      az_deg: -3.0
+      el_deg: -3.0
+      tx_power_w: 100.0
+      cosine:
+        peak_gain_dbi: 35.0
+        theta_3db_deg: 2.0
+        sidelobe_floor_dbi: -20.0
+    - beam_id: "B1"
+      az_deg: 3.0
+      el_deg: -3.0
+      tx_power_w: 100.0
+      cosine:
+        peak_gain_dbi: 35.0
+        theta_3db_deg: 2.0
+        sidelobe_floor_dbi: -20.0
+    - beam_id: "B2"
+      az_deg: -3.0
+      el_deg: 3.0
+      tx_power_w: 100.0
+      cosine:
+        peak_gain_dbi: 35.0
+        theta_3db_deg: 2.0
+        sidelobe_floor_dbi: -20.0
+    - beam_id: "B3"
+      az_deg: 3.0
+      el_deg: 3.0
+      tx_power_w: 100.0
+      cosine:
+        peak_gain_dbi: 35.0
+        theta_3db_deg: 2.0
+        sidelobe_floor_dbi: -20.0
+
+reports:
+  format: "html"
+  include_plots: true

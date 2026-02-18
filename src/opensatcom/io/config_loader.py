@@ -117,6 +117,50 @@ class ReportsSection(BaseModel):
     include_plots: bool = True
 
 
+class CosineAntennaConfig(BaseModel):
+    peak_gain_dbi: float
+    theta_3db_deg: float
+    sidelobe_floor_dbi: float = -20.0
+
+
+class BeamConfig(BaseModel):
+    beam_id: str
+    az_deg: float
+    el_deg: float
+    tx_power_w: float
+    antenna: AntennaEndConfig = AntennaEndConfig()
+    cosine: CosineAntennaConfig | None = None
+
+    @field_validator("beam_id")
+    @classmethod
+    def validate_beam_id(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("beam_id must not be empty")
+        return v
+
+
+class PayloadSection(BaseModel):
+    beams: list[BeamConfig]
+    beam_selection: str = "max_gain"
+    grid_az_range: list[float]
+    grid_el_range: list[float]
+    grid_step_deg: float = 1.0
+
+    @field_validator("beams")
+    @classmethod
+    def validate_beams_nonempty(cls, v: list[BeamConfig]) -> list[BeamConfig]:
+        if not v:
+            raise ValueError("payload.beams must contain at least one beam")
+        return v
+
+    @field_validator("beam_selection")
+    @classmethod
+    def validate_beam_selection(cls, v: str) -> str:
+        if v not in ("max_gain", "nearest"):
+            raise ValueError("beam_selection must be 'max_gain' or 'nearest'")
+        return v
+
+
 class ProjectConfig(BaseModel):
     project: ProjectSection
     scenario: ScenarioSection
@@ -127,6 +171,7 @@ class ProjectConfig(BaseModel):
     modem: ModemSection | None = None
     world: WorldSection | None = None
     reports: ReportsSection | None = None
+    payload: PayloadSection | None = None
 
 
 def load_config(path: str | Path) -> ProjectConfig:

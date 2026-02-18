@@ -39,3 +39,16 @@ class RunContext:
         path = self.run_dir / "link_breakdown.csv"
         df.to_csv(path, index=False)
         return path
+
+    @property
+    def beam_maps_dir(self) -> Path:
+        """Directory for beam map artifacts (created on first access)."""
+        d = self.run_dir / "beam_maps"
+        d.mkdir(exist_ok=True)
+        return d
+
+    def save_beammap_parquet(self, df: pd.DataFrame) -> Path:
+        """Save beam map results as parquet."""
+        path = self.beam_maps_dir / "beam_map.parquet"
+        df.to_parquet(path, index=False)
+        return path
