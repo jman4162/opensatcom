@@ -116,7 +116,7 @@ def _build_propagation(cfg: PropagationSection) -> PropagationModel:
     from opensatcom.propagation.rain import RainAttenuationP618
     from opensatcom.propagation.scintillation import ScintillationLoss
 
-    components = []
+    components: list[PropagationModel] = []
     for comp in cfg.components:
         if comp.type == "fspl":
             components.append(FreeSpacePropagation())

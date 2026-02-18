@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pandas as pd
+
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure
 
 
 def extract_pareto_front(
@@ -33,8 +38,10 @@ def extract_pareto_front(
         Subset of df containing only Pareto-optimal points.
     """
     # Convert objectives: multiply by -1 for maximization so we always minimize
-    x = df[x_col].values.copy()
-    y = df[y_col].values.copy()
+    import numpy as np
+
+    x: np.ndarray = np.asarray(df[x_col].values, dtype=float)
+    y: np.ndarray = np.asarray(df[y_col].values, dtype=float)
     if not minimize_x:
         x = -x
     if not minimize_y:
@@ -62,7 +69,7 @@ def plot_pareto(
     x_col: str,
     y_col: str,
     pareto_df: pd.DataFrame,
-) -> object:
+) -> Figure:
     """Create a scatter plot with Pareto front highlighted.
 
     Returns matplotlib Figure.

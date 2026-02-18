@@ -64,6 +64,7 @@ class NetworkWorldSim:
     """
 
     def __init__(self, scheduler: str = "proportional_fair") -> None:
+        self._scheduler: ProportionalFairScheduler | RoundRobinScheduler
         if scheduler == "round_robin":
             self._scheduler = RoundRobinScheduler()
         else:

@@ -113,6 +113,7 @@ def plot_doe_parallel_coords(
     # Select numeric columns
     numeric_cols = df.select_dtypes(include="number").columns.tolist()
 
+    color_col: str | None = None
     if objectives and objectives[0] in numeric_cols:
         color_col = objectives[0]
     else:

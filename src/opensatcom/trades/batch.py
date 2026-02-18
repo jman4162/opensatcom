@@ -128,7 +128,7 @@ class BatchRunner:
     ) -> pd.DataFrame:
         results = []
         for _, row in cases_df.iterrows():
-            case = row.to_dict()
+            case: dict[str, float] = {str(k): v for k, v in row.to_dict().items()}
             results.append(self._evaluate_single(case, base_config))
         return pd.DataFrame(results)
 

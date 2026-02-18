@@ -46,7 +46,7 @@ def _specific_wet_attenuation(f_ghz: float, rho_g_m3: float) -> float:
         x_183 = (f_ghz - 183.31) / 3.0
         gamma_183 = 4.0 * rho_g_m3 / 7.5 * math.exp(-0.5 * x_183 * x_183)
 
-    return gamma_base + gamma_22 + gamma_183
+    return float(gamma_base + gamma_22 + gamma_183)
 
 
 class GaseousAbsorptionP676:

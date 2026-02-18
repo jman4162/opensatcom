@@ -427,7 +427,7 @@ def cmd_pareto(args: argparse.Namespace) -> None:
 
     fig = plot_pareto(df, x_col, y_col, pareto_df)
     plot_path = results_path.parent / "pareto.png"
-    fig.savefig(plot_path, dpi=150)  # type: ignore[union-attr]
+    fig.savefig(plot_path, dpi=150)
 
     print(f"Pareto: {len(pareto_df)} optimal points from {len(df)} total")
     print(f"Saved to: {pareto_path}, {plot_path}")

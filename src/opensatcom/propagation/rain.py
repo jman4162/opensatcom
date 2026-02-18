@@ -164,4 +164,4 @@ class RainAttenuationP618:
             else:
                 a_p = a_001
 
-        return max(a_p, 0.0)
+        return float(max(a_p, 0.0))

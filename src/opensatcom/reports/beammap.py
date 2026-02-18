@@ -114,7 +114,7 @@ def render_beammap_report(
 
         fig_bm = plot_beam_map_interactive(df, metric="sinr_db")
         plotly_html += '<h2>Interactive Maps</h2>\n'
-        plotly_html += fig_bm.to_html(include_plotlyjs="cdn", full_html=False)  # type: ignore[union-attr]
+        plotly_html += fig_bm.to_html(include_plotlyjs="cdn", full_html=False)
     except ImportError:
         pass  # plotly not installed
 

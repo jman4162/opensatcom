@@ -95,4 +95,4 @@ class ScintillationLoss:
         g_p = _inverse_gaussian_quantile(avail)
         fade_db = sigma * g_p
 
-        return max(fade_db, 0.0)
+        return float(max(fade_db, 0.0))

@@ -104,9 +104,9 @@ def render_mission_report(
 
         fig_margin = plot_link_margin_timeline(times_s, margin_db, outages_mask)
         plotly_html += '<h2>Interactive Plots</h2>\n'
-        plotly_html += fig_margin.to_html(include_plotlyjs="cdn", full_html=False)  # type: ignore[union-attr]
+        plotly_html += fig_margin.to_html(include_plotlyjs="cdn", full_html=False)
         fig_elev = plot_elevation_profile(times_s, elev_deg)
-        plotly_html += fig_elev.to_html(include_plotlyjs=False, full_html=False)  # type: ignore[union-attr]
+        plotly_html += fig_elev.to_html(include_plotlyjs=False, full_html=False)
     except ImportError:
         pass  # plotly not installed, skip interactive plots
 
