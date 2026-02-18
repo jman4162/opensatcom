@@ -55,3 +55,4 @@ select = ["E", "F", "W", "I", "N", "UP"]
 python_version = "3.10"
 strict = true
 ignore_missing_imports = true
+disable_error_code = ["type-arg", "import-untyped"]

@@ -1,4 +1,4 @@
-"""RF chain models."""
+"""RF chain model — re-exported from core for convenience."""
 
 from opensatcom.core.models import RFChainModel
 

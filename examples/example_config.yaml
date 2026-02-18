@@ -1,0 +1,62 @@
+project:
+  name: "leo_user_terminal"
+  seed: 42
+  output_dir: "./runs"
+
+scenario:
+  name: "downlink_ku_demo"
+  direction: "downlink"
+  freq_hz: 19.7e9
+  bandwidth_hz: 200e6
+  polarization: "RHCP"
+  required_metric: "ebn0_db"
+  required_value: 6.0
+
+terminals:
+  tx:
+    name: "sat_payload"
+    lat_deg: 0.0
+    lon_deg: 0.0
+    alt_m: 550000.0
+  rx:
+    name: "user_terminal"
+    lat_deg: 47.6062
+    lon_deg: -122.3321
+    alt_m: 50.0
+    system_noise_temp_k: 500.0
+
+antenna:
+  tx:
+    model: "pam"
+    pam:
+      nx: 16
+      ny: 16
+      dx_lambda: 0.5
+      dy_lambda: 0.5
+  rx:
+    model: "parametric"
+    parametric:
+      gain_dbi: 35.0
+
+rf_chain:
+  tx_power_w: 200.0
+  tx_losses_db: 2.0
+  rx_noise_temp_k: 500.0
+
+propagation:
+  model: "composite"
+  components:
+    - type: "fspl"
+
+world:
+  enabled: true
+  t0_s: 0
+  t1_s: 600
+  dt_s: 1.0
+  ops_policy:
+    min_elevation_deg: 10
+    max_scan_deg: 60
+
+reports:
+  format: "html"
+  include_plots: true
