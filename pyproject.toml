@@ -20,11 +20,6 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 
-[project.urls]
-Homepage = "https://github.com/jman4162/opensatcom"
-Repository = "https://github.com/jman4162/opensatcom"
-Documentation = "https://github.com/jman4162/opensatcom/tree/main/docs"
-Issues = "https://github.com/jman4162/opensatcom/issues"
 dependencies = [
     "numpy>=1.24",
     "pandas>=2.0",
@@ -36,6 +31,12 @@ dependencies = [
     "plotly>=5.15",
     "seaborn>=0.12",
 ]
+
+[project.urls]
+Homepage = "https://github.com/jman4162/opensatcom"
+Repository = "https://github.com/jman4162/opensatcom"
+Documentation = "https://github.com/jman4162/opensatcom/tree/main/docs"
+Issues = "https://github.com/jman4162/opensatcom/issues"
 
 [project.optional-dependencies]
 dev = [
