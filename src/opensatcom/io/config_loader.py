@@ -61,11 +61,20 @@ class PamAntennaConfig(BaseModel):
     impairments: dict[str, Any] | None = None
 
 
+class CouplingConfig(BaseModel):
+    enabled: bool = False
+    source: str = "edgefem"
+    artifact_path: str | None = None
+    metadata_path: str | None = None
+    steering_az_deg: float = 0.0
+    steering_el_deg: float = 0.0
+
+
 class AntennaEndConfig(BaseModel):
     model: str = "parametric"
     parametric: ParametricAntennaConfig | None = None
     pam: PamAntennaConfig | None = None
-    coupling: dict[str, Any] | None = None
+    coupling: CouplingConfig | None = None
 
 
 class AntennaSection(BaseModel):
@@ -73,10 +82,18 @@ class AntennaSection(BaseModel):
     rx: AntennaEndConfig
 
 
+class RFStageConfig(BaseModel):
+    name: str
+    gain_db: float
+    nf_db: float
+    iip3_dbm: float | None = None
+
+
 class RFChainSection(BaseModel):
     tx_power_w: float
-    tx_losses_db: float
-    rx_noise_temp_k: float
+    tx_losses_db: float = 0.0
+    rx_noise_temp_k: float = 0.0
+    stages: list[RFStageConfig] | None = None
 
 
 class PropagationComponentConfig(BaseModel):
@@ -101,6 +118,9 @@ class ModemSection(BaseModel):
 class WorldOpsPolicy(BaseModel):
     min_elevation_deg: float = 10.0
     max_scan_deg: float = 60.0
+    handover_hysteresis_s: float = 5.0
+    handover_hysteresis_db: float = 3.0
+    handover_metric: str = "margin"
 
 
 class WorldSection(BaseModel):
@@ -109,6 +129,7 @@ class WorldSection(BaseModel):
     t1_s: float = 600.0
     dt_s: float = 1.0
     trajectory: dict[str, Any] | None = None
+    trajectories: dict[str, dict[str, Any]] | None = None
     ops_policy: WorldOpsPolicy = WorldOpsPolicy()
 
 

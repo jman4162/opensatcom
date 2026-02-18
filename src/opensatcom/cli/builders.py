@@ -19,6 +19,7 @@ from opensatcom.io.config_loader import (
     BeamConfig,
     ProjectConfig,
     PropagationSection,
+    RFChainSection,
     TerminalSection,
 )
 from opensatcom.payload.beam import Beam
@@ -38,6 +39,18 @@ def _build_terminal(cfg: TerminalSection) -> Terminal:
 
 
 def _build_antenna(cfg: AntennaEndConfig) -> AntennaModel:
+    # Coupling-aware antenna from EdgeFEM artifact
+    if cfg.coupling is not None and cfg.coupling.enabled:
+        from opensatcom.antenna.coupling import CouplingAwareAntenna
+
+        if cfg.coupling.artifact_path is None:
+            raise ValueError("coupling.artifact_path required when coupling enabled")
+        return CouplingAwareAntenna.from_npz(
+            cfg.coupling.artifact_path,
+            steering_az_deg=cfg.coupling.steering_az_deg,
+            steering_el_deg=cfg.coupling.steering_el_deg,
+        )
+
     if cfg.model == "pam" and cfg.pam is not None:
         pam_cfg = cfg.pam
         taper = None
@@ -70,6 +83,29 @@ def _build_propagation(cfg: PropagationSection) -> PropagationModel:
     return CompositePropagation(components)
 
 
+def _build_rf_chain(cfg: RFChainSection) -> RFChainModel:
+    """Build RFChainModel, using cascaded stages if present."""
+    if cfg.stages:
+        from opensatcom.rf.cascade import CascadedRFChain, RFStage
+
+        stages = [
+            RFStage(
+                name=s.name,
+                gain_db=s.gain_db,
+                nf_db=s.nf_db,
+                iip3_dbm=s.iip3_dbm,
+            )
+            for s in cfg.stages
+        ]
+        cascade = CascadedRFChain(stages, tx_power_w=cfg.tx_power_w)
+        return cascade.to_simple_rf_chain()
+    return RFChainModel(
+        tx_power_w=cfg.tx_power_w,
+        tx_losses_db=cfg.tx_losses_db,
+        rx_noise_temp_k=cfg.rx_noise_temp_k,
+    )
+
+
 def build_link_inputs_from_config(cfg: ProjectConfig) -> LinkInputs:
     """Build LinkInputs from a validated ProjectConfig."""
     tx_terminal = _build_terminal(cfg.terminals.tx)
@@ -90,11 +126,7 @@ def build_link_inputs_from_config(cfg: ProjectConfig) -> LinkInputs:
     rx_antenna = _build_antenna(cfg.antenna.rx)
     propagation = _build_propagation(cfg.propagation)
 
-    rf_chain = RFChainModel(
-        tx_power_w=cfg.rf_chain.tx_power_w,
-        tx_losses_db=cfg.rf_chain.tx_losses_db,
-        rx_noise_temp_k=cfg.rf_chain.rx_noise_temp_k,
-    )
+    rf_chain = _build_rf_chain(cfg.rf_chain)
 
     return LinkInputs(
         tx_terminal=tx_terminal,
@@ -139,11 +171,7 @@ def build_beamset_from_config(cfg: ProjectConfig) -> BeamSet:
 
     propagation = _build_propagation(cfg.propagation)
 
-    rf_chain = RFChainModel(
-        tx_power_w=cfg.rf_chain.tx_power_w,
-        tx_losses_db=cfg.rf_chain.tx_losses_db,
-        rx_noise_temp_k=cfg.rf_chain.rx_noise_temp_k,
-    )
+    rf_chain = _build_rf_chain(cfg.rf_chain)
 
     beams = []
     for bc in cfg.payload.beams:
