@@ -4,12 +4,27 @@ build-backend = "hatchling.build"
 
 [project]
 name = "opensatcom"
-version = "0.1.0"
+version = "0.4.0"
 description = "Professional-grade open-source Python toolkit for satellite communications engineering"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
-authors = [{ name = "John Hodge", email = "jhodge007@gmail.com" }]
+authors = [{ name = "John Hodge", email = "jah70@vt.edu" }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.urls]
+Homepage = "https://github.com/jman4162/opensatcom"
+Repository = "https://github.com/jman4162/opensatcom"
+Documentation = "https://github.com/jman4162/opensatcom/tree/main/docs"
+Issues = "https://github.com/jman4162/opensatcom/issues"
 dependencies = [
     "numpy>=1.24",
     "pandas>=2.0",
@@ -17,6 +32,9 @@ dependencies = [
     "pydantic>=2.0",
     "matplotlib>=3.7",
     "pyarrow>=12.0",
+    "scipy>=1.10",
+    "plotly>=5.15",
+    "seaborn>=0.12",
 ]
 
 [project.optional-dependencies]
@@ -29,6 +47,7 @@ dev = [
 ]
 itur = ["itur>=1.7"]
 orbit = ["sgp4>=2.20", "skyfield>=1.45"]
+notebooks = ["jupyterlab>=4.0", "ipywidgets>=8.0"]
 
 [project.scripts]
 opensatcom = "opensatcom.cli:main"

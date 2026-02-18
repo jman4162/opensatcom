@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "OpenSatCom: Open-Source Satellite Communications Engineering Toolkit"
+version: 0.4.0
+date-released: 2025-01-01
+license: MIT
+url: "https://github.com/jman4162/opensatcom"
+repository-code: "https://github.com/jman4162/opensatcom"
+authors:
+  - family-names: Hodge
+    given-names: John
+    email: jah70@vt.edu
+keywords:
+  - satellite communications
+  - link budget
+  - propagation modeling
+  - phased array
+  - RF engineering
+  - DVB-S2
+abstract: >-
+  Professional-grade open-source Python toolkit for satellite communications
+  engineering. Maps antenna + RF chain + propagation + mission time-series to
+  link margin & capacity, with reproducible, trade-study-ready outputs.

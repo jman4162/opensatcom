@@ -11,7 +11,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="opensatcom",
         description="Professional-grade satellite communications engineering toolkit",
     )
-    parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
+    parser.add_argument("--version", action="version", version="%(prog)s 0.4.0")
 
     sub = parser.add_subparsers(dest="command")
 
@@ -298,6 +298,87 @@ def cmd_report(args: argparse.Namespace) -> None:
         print(f"Report generated: {out_path}")
 
 
+def cmd_doe(args: argparse.Namespace) -> None:
+    """Design of experiments — generate parameter cases."""
+    import yaml
+
+    from opensatcom.trades.doe import DesignOfExperiments
+    from opensatcom.trades.requirements import RequirementsTemplate
+
+    config_path = Path(args.config)
+    with open(config_path) as f:
+        raw = yaml.safe_load(f)
+
+    trades_cfg = raw.get("trades", {})
+    params = trades_cfg.get("parameters", {})
+
+    req = RequirementsTemplate()
+    for name, bounds in params.items():
+        if isinstance(bounds, list) and len(bounds) == 2:
+            req.add(name, float(bounds[0]), float(bounds[1]))
+
+    if req.n_params == 0:
+        print("Error: no parameters defined in trades.parameters section", file=sys.stderr)
+        sys.exit(2)
+
+    doe = DesignOfExperiments(req.to_parameter_space())
+    cases_df = doe.generate(n_samples=args.n, method=args.method)
+
+    out_path = config_path.parent / "cases.parquet"
+    cases_df.to_parquet(out_path, index=False)
+    print(f"DOE: generated {len(cases_df)} cases ({args.method}) with {req.n_params} parameters")
+    print(f"Saved to: {out_path}")
+
+
+def cmd_batch(args: argparse.Namespace) -> None:
+    """Batch evaluation from parquet cases."""
+    import pandas as pd
+
+    from opensatcom.trades.batch import BatchRunner
+
+    cases_path = Path(args.cases)
+    if not cases_path.exists():
+        print(f"Error: cases file not found: {cases_path}", file=sys.stderr)
+        sys.exit(2)
+
+    cases_df = pd.read_parquet(cases_path)
+    runner = BatchRunner()
+    results_df = runner.run(cases_df, parallel=args.parallel)
+
+    out_path = cases_path.parent / "results.parquet"
+    results_df.to_parquet(out_path, index=False)
+    print(f"Batch: evaluated {len(results_df)} cases")
+    print(f"Saved to: {out_path}")
+
+
+def cmd_pareto(args: argparse.Namespace) -> None:
+    """Pareto extraction from results."""
+    import pandas as pd
+
+    from opensatcom.trades.pareto import extract_pareto_front, plot_pareto
+
+    results_path = Path(args.results)
+    if not results_path.exists():
+        print(f"Error: results file not found: {results_path}", file=sys.stderr)
+        sys.exit(2)
+
+    df = pd.read_parquet(results_path)
+    x_col = getattr(args, "x")
+    y_col = getattr(args, "y")
+
+    pareto_df = extract_pareto_front(df, x_col, y_col)
+
+    pareto_path = results_path.parent / "pareto.parquet"
+    pareto_df.to_parquet(pareto_path, index=False)
+
+    fig = plot_pareto(df, x_col, y_col, pareto_df)
+    plot_path = results_path.parent / "pareto.png"
+    fig.savefig(plot_path, dpi=150)  # type: ignore[union-attr]
+
+    print(f"Pareto: {len(pareto_df)} optimal points from {len(df)} total")
+    print(f"Saved to: {pareto_path}, {plot_path}")
+
+
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
@@ -311,6 +392,9 @@ def main() -> None:
         "mission": cmd_mission,
         "beammap": cmd_beammap,
         "report": cmd_report,
+        "doe": cmd_doe,
+        "batch": cmd_batch,
+        "pareto": cmd_pareto,
     }
 
     handler = dispatch.get(args.command)

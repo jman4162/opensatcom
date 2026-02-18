@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 
 from opensatcom.antenna.cosine import CosineRolloffAntenna
@@ -17,6 +19,7 @@ from opensatcom.core.protocols import AntennaModel, PropagationModel
 from opensatcom.io.config_loader import (
     AntennaEndConfig,
     BeamConfig,
+    ModemSection,
     ProjectConfig,
     PropagationSection,
     RFChainSection,
@@ -73,11 +76,29 @@ def _build_antenna(cfg: AntennaEndConfig) -> AntennaModel:
 
 
 def _build_propagation(cfg: PropagationSection) -> PropagationModel:
+    from opensatcom.propagation.gas import GaseousAbsorptionP676
+    from opensatcom.propagation.rain import RainAttenuationP618
+    from opensatcom.propagation.scintillation import ScintillationLoss
+
     components = []
     for comp in cfg.components:
         if comp.type == "fspl":
             components.append(FreeSpacePropagation())
-        # Other types (itur_rain, itur_gas) are plugin-based, skip for P0
+        elif comp.type in ("itur_rain", "rain"):
+            components.append(
+                RainAttenuationP618(
+                    availability_target=comp.availability_target or 0.99,
+                    climate_region=comp.climate_region,
+                )
+            )
+        elif comp.type in ("itur_gas", "gas"):
+            components.append(GaseousAbsorptionP676())
+        elif comp.type == "scintillation":
+            components.append(
+                ScintillationLoss(
+                    availability_target=comp.availability_target or 0.99,
+                )
+            )
     if not components:
         components.append(FreeSpacePropagation())
     return CompositePropagation(components)
@@ -106,6 +127,38 @@ def _build_rf_chain(cfg: RFChainSection) -> RFChainModel:
     )
 
 
+def _build_modem(cfg_modem: ModemSection) -> Any:
+    """Build ModemModel from config, defaulting to DVB-S2 built-in table."""
+    from opensatcom.modem.acm import HysteresisACMPolicy
+    from opensatcom.modem.dvbs2 import get_dvbs2_modcod_table, get_dvbs2_performance_curves
+    from opensatcom.modem.modem import ModemModel
+
+    modcods = get_dvbs2_modcod_table()
+    curves = get_dvbs2_performance_curves()
+    target_bler = cfg_modem.target_bler
+
+    acm_kwargs: dict[str, float] = {}
+    if cfg_modem.acm_policy:
+        if "hysteresis_db" in cfg_modem.acm_policy:
+            acm_kwargs["hysteresis_db"] = cfg_modem.acm_policy["hysteresis_db"]
+        if "hold_time_s" in cfg_modem.acm_policy:
+            acm_kwargs["hold_time_s"] = cfg_modem.acm_policy["hold_time_s"]
+
+    acm_policy = HysteresisACMPolicy(
+        modcods=modcods,
+        curves=curves,
+        target_bler=target_bler,
+        **acm_kwargs,
+    )
+
+    return ModemModel(
+        modcods=modcods,
+        curves=curves,
+        target_bler=target_bler,
+        acm_policy=acm_policy,
+    )
+
+
 def build_link_inputs_from_config(cfg: ProjectConfig) -> LinkInputs:
     """Build LinkInputs from a validated ProjectConfig."""
     tx_terminal = _build_terminal(cfg.terminals.tx)
@@ -128,6 +181,10 @@ def build_link_inputs_from_config(cfg: ProjectConfig) -> LinkInputs:
 
     rf_chain = _build_rf_chain(cfg.rf_chain)
 
+    modem = None
+    if cfg.modem is not None and cfg.modem.enabled:
+        modem = _build_modem(cfg.modem)
+
     return LinkInputs(
         tx_terminal=tx_terminal,
         rx_terminal=rx_terminal,
@@ -136,6 +193,7 @@ def build_link_inputs_from_config(cfg: ProjectConfig) -> LinkInputs:
         rx_antenna=rx_antenna,
         propagation=propagation,
         rf_chain=rf_chain,
+        modem=modem,
     )
 
 
