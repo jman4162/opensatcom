@@ -34,7 +34,7 @@ class CouplingData:
 
     @property
     def n_elements(self) -> int:
-        return self.coupling_matrix.shape[0]
+        return int(self.coupling_matrix.shape[0])
 
 
 def load_npz_artifact(path: str | Path) -> CouplingData:
