@@ -6,11 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 OpenSatCom is a professional-grade, open-source Python toolkit for satellite communications engineering. It maps **antenna + RF chain + propagation + mission time-series → link margin & capacity**, with reproducible, trade-study-ready outputs.
 
-OpenSatCom is a **domain + glue layer** — it does not reimplement engines. It wraps:
-- **PAM** (phased-array-modeling): fast phased-array pattern synthesis
-- **PAS** (phased-array-systems): requirements-driven workflows, DOE/Pareto trades
-- **EdgeFEM** (edgefem): optional coupling-aware element-level fidelity
-- **APAB** (agentic-phased-array-builder): optional agent orchestration
+OpenSatCom is a **domain + glue layer** — it does not reimplement engines. It integrates with:
+- **PAM** (phased-array-modeling): optional phased-array pattern synthesis (analytic fallback when not installed)
+- **EdgeFEM**: artifact ingestion from `.npz` coupling data (no runtime dependency on edgefem)
+- **PAS** (phased-array-systems): planned integration (not yet implemented)
+- **APAB** (agentic-phased-array-builder): planned integration (not yet implemented)
 
 ## Build & Development Commands
 

@@ -46,8 +46,6 @@ dev = [
     "ruff>=0.1",
     "coverage>=7.0",
 ]
-itur = ["itur>=1.7"]
-orbit = ["sgp4>=2.20", "skyfield>=1.45"]
 notebooks = ["jupyterlab>=4.0", "ipywidgets>=8.0"]
 docs = ["mkdocs>=1.6", "mkdocs-material>=9.5", "mkdocstrings[python]>=0.27"]
 

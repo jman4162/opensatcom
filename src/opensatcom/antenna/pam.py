@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import warnings
 from typing import Any
 
 import numpy as np
@@ -66,7 +67,11 @@ class PamArrayAntenna:
 
             self._pam_available = True
         except ImportError:
-            pass
+            warnings.warn(
+                "PAM package not installed — PamArrayAntenna will return peak gain "
+                "at all angles (no pattern shaping). Install PAM for accurate patterns.",
+                stacklevel=2,
+            )
 
         # Compute analytic peak gain: D = 4*pi*Nx*dx*Ny*dy (in wavelengths^2)
         aperture_lambda_sq = nx * dx_lambda * ny * dy_lambda
