@@ -241,6 +241,7 @@ def build_link_inputs_from_config(cfg: ProjectConfig) -> LinkInputs:
         polarization=cfg.scenario.polarization,
         required_metric=cfg.scenario.required_metric,
         required_value=cfg.scenario.required_value,
+        rx_polarization=cfg.scenario.rx_polarization,
         misc=cfg.scenario.misc,
     )
 
@@ -317,6 +318,7 @@ def build_beamset_from_config(cfg: ProjectConfig) -> BeamSet:
         polarization=cfg.scenario.polarization,
         required_metric=cfg.scenario.required_metric,
         required_value=cfg.scenario.required_value,
+        rx_polarization=cfg.scenario.rx_polarization,
         misc=cfg.scenario.misc,
     )
 

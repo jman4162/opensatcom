@@ -37,6 +37,7 @@ class SimpleWorldSim:
         trajectory: PrecomputedTrajectory,
         ops: OpsPolicy,
         env: StaticEnvironmentProvider,
+        doppler_hz: np.ndarray | None = None,
     ) -> WorldSimOutputs:
         """Run the Tier 1 simulation over a satellite pass.
 
@@ -51,6 +52,9 @@ class SimpleWorldSim:
             Operational constraints (min elevation, max scan angle).
         env : StaticEnvironmentProvider
             Environment provider for propagation conditions at each step.
+        doppler_hz : numpy.ndarray or None
+            Pre-computed Doppler shift time series in Hz. If provided,
+            included in the output.
 
         Returns
         -------
@@ -139,4 +143,6 @@ class SimpleWorldSim:
             outages_mask=outages,
             summary=summary,
             breakdown_timeseries=breakdown_ts if breakdown_ts else None,
+            az_deg=pd.az_deg,
+            doppler_hz=doppler_hz,
         )

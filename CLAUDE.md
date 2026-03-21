@@ -38,6 +38,7 @@ opensatcom doe config.yaml -n 500 --method lhs   # design of experiments
 opensatcom batch cases.parquet --parallel
 opensatcom report results.parquet --format html
 opensatcom pareto results.parquet --x cost_usd --y throughput_p50
+opensatcom sensitivity config.yaml --metric margin_db -n 1024
 ```
 
 ## Architecture (Module Layout)
@@ -48,12 +49,12 @@ src/opensatcom/
 ├── antenna/       # PAM wrappers + EdgeFEM ingestion adapters
 ├── rf/            # RF chain models (tx power, losses, noise temp cascades)
 ├── propagation/   # FSPL, ITU-R P.618 rain, P.676 gas, scintillation, composite
-├── geometry/      # Slant range, elevation/azimuth, pointing, optional Doppler
+├── geometry/      # Slant range, elevation/azimuth, pointing, Doppler shift, SGP4/TLE trajectory
 ├── modem/         # DVB-S2 ModCod table, analytic BER curves, ACM hysteresis policy
-├── link/          # Snapshot link budget engine, margin computation, throughput
+├── link/          # Snapshot link budget engine, margin computation, throughput, polarization loss
 ├── payload/       # BeamSet, BeamMap, multi-beam interference
 ├── world/         # WorldSim Tier 1/2/3, traffic models, schedulers, handover
-├── trades/        # DOE (LHS/factorial/random), batch runner, Pareto extraction
+├── trades/        # DOE (LHS/factorial/random), batch runner, Pareto extraction, Sobol sensitivity
 ├── viz/           # Plotly interactive + Seaborn statistical visualizations
 ├── reports/       # HTML report generation with optional Plotly embeds
 ├── io/            # Artifact I/O (parquet, json, yaml, hdf5)
@@ -82,6 +83,8 @@ src/opensatcom/
 
 Core: `numpy`, `pandas`, `pyyaml`, `pydantic`, `matplotlib`, `pyarrow`, `scipy`, `plotly`, `seaborn`
 
+Optional: `sgp4` (orbit extra — TLE trajectory), `SALib` (sensitivity extra — Sobol analysis)
+
 ## Unit & Coordinate Conventions
 
 - Internal representation: **SI units** (Hz, meters, seconds, Kelvin, Watts)
@@ -107,6 +110,7 @@ Project config is YAML-driven with sections: `project`, `scenario`, `terminals`,
 - **P1 (v0.2)** ✅: Multi-beam payload, interference model, capacity maps
 - **P2 (v0.3)** ✅: EdgeFEM coupling, multi-sat handover, cascaded RF chain
 - **P3 (v0.4)** ✅: ITU-R propagation, DVB-S2, trades module, network traffic Tier 3, CI/CD, Plotly/Seaborn viz, Jupyter tutorials
+- **P4 (v0.5)** ✅: Polarization mismatch loss, itemized link budget breakdown, SGP4/TLE trajectory provider, Doppler shift, Sobol sensitivity analysis
 
 ## Git & GitHub
 

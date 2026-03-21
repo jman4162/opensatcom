@@ -30,6 +30,7 @@ class ScenarioSection(BaseModel):
     freq_hz: float
     bandwidth_hz: float
     polarization: str
+    rx_polarization: str | None = None
     required_metric: str
     required_value: float
     misc: dict[str, Any] | None = None

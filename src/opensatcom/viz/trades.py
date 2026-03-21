@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 
@@ -138,4 +139,84 @@ def plot_doe_parallel_coords(
     ))
 
     fig.update_layout(title=title)
+    return fig
+
+
+def plot_sensitivity_bar(
+    param_names: list[str],
+    s1: np.ndarray,
+    st: np.ndarray,
+    s1_conf: np.ndarray | None = None,
+    st_conf: np.ndarray | None = None,
+    title: str = "Sobol Sensitivity Analysis",
+    metric_name: str = "output",
+) -> Any:
+    """Horizontal bar chart of Sobol first-order and total-order indices.
+
+    Parameters
+    ----------
+    param_names : list of str
+        Parameter names.
+    s1 : numpy.ndarray
+        First-order Sobol indices.
+    st : numpy.ndarray
+        Total-order Sobol indices.
+    s1_conf : numpy.ndarray or None
+        Confidence intervals for S1 (half-width).
+    st_conf : numpy.ndarray or None
+        Confidence intervals for ST (half-width).
+    title : str
+        Plot title.
+    metric_name : str
+        Name of the output metric being analyzed.
+
+    Returns
+    -------
+    plotly.graph_objects.Figure
+        Interactive Plotly horizontal bar chart.
+    """
+    import plotly.graph_objects as go
+
+    # Sort by total-order index descending
+    order = np.argsort(st)[::-1]
+    names_sorted = [param_names[i] for i in order]
+    s1_sorted = s1[order]
+    st_sorted = st[order]
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Bar(
+        y=names_sorted,
+        x=st_sorted,
+        orientation="h",
+        name="Total-order (ST)",
+        marker=dict(color="#1565c0", opacity=0.6),
+        error_x=dict(
+            type="data",
+            array=st_conf[order] if st_conf is not None else None,
+            visible=st_conf is not None,
+        ),
+    ))
+
+    fig.add_trace(go.Bar(
+        y=names_sorted,
+        x=s1_sorted,
+        orientation="h",
+        name="First-order (S1)",
+        marker=dict(color="#c62828", opacity=0.8),
+        error_x=dict(
+            type="data",
+            array=s1_conf[order] if s1_conf is not None else None,
+            visible=s1_conf is not None,
+        ),
+    ))
+
+    fig.update_layout(
+        title=f"{title} — {metric_name}",
+        xaxis_title="Sobol Index",
+        yaxis_title="Parameter",
+        barmode="overlay",
+        template="plotly_white",
+        yaxis=dict(autorange="reversed"),
+    )
     return fig

@@ -82,6 +82,7 @@ class Scenario:
     polarization: str  # "RHCP", "LHCP", "H", "V"
     required_metric: str  # "ebn0_db", "cn0_dbhz", "throughput_mbps"
     required_value: float
+    rx_polarization: str | None = None
     misc: dict[str, Any] | None = None
 
 
@@ -409,6 +410,8 @@ class WorldSimOutputs:
     outages_mask: np.ndarray
     summary: dict[str, float]
     breakdown_timeseries: dict[str, np.ndarray] | None = None
+    az_deg: np.ndarray | None = None
+    doppler_hz: np.ndarray | None = None
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, WorldSimOutputs):

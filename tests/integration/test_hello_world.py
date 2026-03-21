@@ -41,7 +41,7 @@ class TestHelloWorld:
 
         # Should have complete breakdown
         assert out.breakdown is not None
-        assert len(out.breakdown) == 13
+        assert len(out.breakdown) == 16
 
     def test_hello_world_imports(self) -> None:
         """Verify all imports from spec Hello World work."""

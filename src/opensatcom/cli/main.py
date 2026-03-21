@@ -2,13 +2,19 @@
 
 Provides the ``opensatcom`` command with subcommands for snapshot evaluation,
 mission simulation, beam mapping, DOE, batch processing, Pareto extraction,
-and report generation.
+sensitivity analysis, and report generation.
 """
+
+from __future__ import annotations
 
 import argparse
 import sys
 import traceback
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from opensatcom.world.providers import PrecomputedTrajectory
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -23,7 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="opensatcom",
         description="Professional-grade satellite communications engineering toolkit",
     )
-    parser.add_argument("--version", action="version", version="%(prog)s 0.4.0")
+    parser.add_argument("--version", action="version", version="%(prog)s 0.5.0")
 
     sub = parser.add_subparsers(dest="command")
 
@@ -60,6 +66,12 @@ def build_parser() -> argparse.ArgumentParser:
     # opensatcom beammap
     beammap_parser = sub.add_parser("beammap", help="Multi-beam capacity map evaluation")
     beammap_parser.add_argument("config", help="Path to YAML config file")
+
+    # opensatcom sensitivity
+    sens_parser = sub.add_parser("sensitivity", help="Sobol sensitivity analysis")
+    sens_parser.add_argument("config", help="Path to YAML config file")
+    sens_parser.add_argument("--metric", default="margin_db", help="Output metric to analyze")
+    sens_parser.add_argument("-n", type=int, default=1024, help="Base sample count")
 
     return parser
 
@@ -130,6 +142,9 @@ def cmd_run(args: argparse.Namespace) -> None:
 def cmd_mission(args: argparse.Namespace) -> None:
     """Time-series mission simulation.
 
+    Supports both synthetic elevation sweep and SGP4/TLE trajectory
+    when ``world.trajectory.type`` is ``"tle"`` in the config.
+
     Parameters
     ----------
     args : argparse.Namespace
@@ -140,11 +155,10 @@ def cmd_mission(args: argparse.Namespace) -> None:
 
     from opensatcom.cli.builders import build_link_inputs_from_config
     from opensatcom.core.models import OpsPolicy, PropagationConditions
-    from opensatcom.geometry.slant import slant_range_m
     from opensatcom.io.config_loader import load_config
     from opensatcom.io.workspace import RunContext
     from opensatcom.reports.mission import render_mission_report
-    from opensatcom.world.providers import PrecomputedTrajectory, StaticEnvironmentProvider
+    from opensatcom.world.providers import StaticEnvironmentProvider
     from opensatcom.world.sim import SimpleWorldSim
 
     cfg = load_config(args.config)
@@ -155,23 +169,43 @@ def cmd_mission(args: argparse.Namespace) -> None:
         print("Error: 'world' section required for mission command", file=sys.stderr)
         sys.exit(2)
 
-    # Generate synthetic pass data (elevation sweep)
     t0 = world_cfg.t0_s
     t1 = world_cfg.t1_s
     dt = world_cfg.dt_s
-    n_steps = int((t1 - t0) / dt)
-    times = np.linspace(t0, t1, n_steps)
-    elev = np.concatenate([
-        np.linspace(5.0, 80.0, n_steps // 2),
-        np.linspace(80.0, 5.0, n_steps - n_steps // 2),
-    ])
-    az = np.zeros(n_steps)
-    range_arr = np.array([
-        slant_range_m(link_inputs.rx_terminal.alt_m, link_inputs.tx_terminal.alt_m, e)
-        for e in elev
-    ])
 
-    traj = PrecomputedTrajectory.from_arrays(times, elev, az, range_arr)
+    traj_cfg = world_cfg.trajectory
+    doppler_arr: np.ndarray | None = None
+
+    if traj_cfg is not None and traj_cfg.get("type") == "tle":
+        # SGP4/TLE trajectory
+        try:
+            from opensatcom.geometry.sgp4_provider import SGP4TrajectoryProvider
+
+            tle1 = traj_cfg["tle_line1"]
+            tle2 = traj_cfg["tle_line2"]
+            gs = link_inputs.rx_terminal
+
+            provider = SGP4TrajectoryProvider(tle1, tle2, gs)
+            traj, doppler_arr = provider.compute_pass(
+                t0, t1, dt, f_hz=link_inputs.scenario.freq_hz
+            )
+        except ImportError:
+            import warnings
+
+            warnings.warn(
+                "sgp4 not installed — falling back to synthetic elevation sweep. "
+                "Install with: pip install 'opensatcom[orbit]'",
+                stacklevel=2,
+            )
+            traj, doppler_arr = _synthetic_trajectory(
+                t0, t1, dt, link_inputs.rx_terminal.alt_m, link_inputs.tx_terminal.alt_m
+            ), None
+    else:
+        # Synthetic elevation sweep (default)
+        traj = _synthetic_trajectory(
+            t0, t1, dt, link_inputs.rx_terminal.alt_m, link_inputs.tx_terminal.alt_m
+        )
+
     ops = OpsPolicy(
         min_elevation_deg=world_cfg.ops_policy.min_elevation_deg,
         max_scan_deg=world_cfg.ops_policy.max_scan_deg,
@@ -179,19 +213,25 @@ def cmd_mission(args: argparse.Namespace) -> None:
     env = StaticEnvironmentProvider(PropagationConditions())
 
     sim = SimpleWorldSim()
-    out = sim.run(link_inputs, traj, ops, env)
+    out = sim.run(link_inputs, traj, ops, env, doppler_hz=doppler_arr)
 
     # Save artifacts
     ctx = RunContext(output_dir=cfg.project.output_dir, run_id=cfg.project.name)
     ctx.save_config_snapshot(cfg.model_dump())
 
-    results_df = pd.DataFrame({
+    results_dict: dict[str, Any] = {
         "time_s": out.times_s,
         "elev_deg": out.elev_deg,
         "range_m": out.range_m,
         "margin_db": out.margin_db,
         "outage": out.outages_mask,
-    })
+    }
+    if out.doppler_hz is not None:
+        results_dict["doppler_hz"] = out.doppler_hz
+    if out.az_deg is not None:
+        results_dict["az_deg"] = out.az_deg
+
+    results_df = pd.DataFrame(results_dict)
     ctx.save_results_parquet(results_df)
 
     render_mission_report(
@@ -203,12 +243,58 @@ def cmd_mission(args: argparse.Namespace) -> None:
         config=cfg.model_dump(),
         output_path=ctx.run_dir / "report.html",
         plots_dir=ctx.plots_dir,
+        doppler_hz=out.doppler_hz,
     )
 
     print("Mission simulation complete.")
     for key, val in out.summary.items():
         print(f"  {key}: {val:.4f}")
+    if out.doppler_hz is not None:
+        valid_doppler = out.doppler_hz[~out.outages_mask]
+        if len(valid_doppler) > 0:
+            print(f"  doppler_hz_min: {float(np.min(valid_doppler)):.1f}")
+            print(f"  doppler_hz_max: {float(np.max(valid_doppler)):.1f}")
     print(f"Artifacts saved to: {ctx.run_dir}")
+
+
+def _synthetic_trajectory(
+    t0: float, t1: float, dt: float, rx_alt_m: float, tx_alt_m: float,
+) -> PrecomputedTrajectory:
+    """Generate a synthetic elevation sweep trajectory.
+
+    Parameters
+    ----------
+    t0 : float
+        Start time in seconds.
+    t1 : float
+        End time in seconds.
+    dt : float
+        Time step in seconds.
+    rx_alt_m : float
+        Receiver altitude in metres.
+    tx_alt_m : float
+        Transmitter altitude in metres.
+
+    Returns
+    -------
+    PrecomputedTrajectory
+        Trajectory with synthetic elevation sweep.
+    """
+    import numpy as np
+
+    from opensatcom.geometry.slant import slant_range_m
+    from opensatcom.world.providers import PrecomputedTrajectory
+
+    n_steps = int((t1 - t0) / dt)
+    times = np.linspace(t0, t1, n_steps)
+    elev = np.concatenate([
+        np.linspace(5.0, 80.0, n_steps // 2),
+        np.linspace(80.0, 5.0, n_steps - n_steps // 2),
+    ])
+    az = np.zeros(n_steps)
+    range_arr = np.array([slant_range_m(rx_alt_m, tx_alt_m, e) for e in elev])
+
+    return PrecomputedTrajectory.from_arrays(times, elev, az, range_arr)
 
 
 def cmd_beammap(args: argparse.Namespace) -> None:
@@ -308,6 +394,7 @@ def cmd_report(args: argparse.Namespace) -> None:
             "margin_db_mean": float(df["margin_db"].mean()),
             "margin_db_min": float(df["margin_db"].min()),
         }
+        doppler = df["doppler_hz"].to_numpy() if "doppler_hz" in df.columns else None
         render_mission_report(
             summary=summary,
             times_s=df["time_s"].to_numpy(),
@@ -322,6 +409,7 @@ def cmd_report(args: argparse.Namespace) -> None:
             ),
             config={},
             output_path=out_path,
+            doppler_hz=doppler,
         )
         print(f"Report generated: {out_path}")
     else:
@@ -433,6 +521,85 @@ def cmd_pareto(args: argparse.Namespace) -> None:
     print(f"Saved to: {pareto_path}, {plot_path}")
 
 
+def cmd_sensitivity(args: argparse.Namespace) -> None:
+    """Sobol sensitivity analysis.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Parsed CLI arguments with ``config`` path, ``metric``, and ``n``.
+    """
+    import yaml
+
+    from opensatcom.trades.sensitivity import (
+        compute_sobol_indices,
+        generate_saltelli_samples,
+    )
+    from opensatcom.viz.trades import plot_sensitivity_bar
+
+    config_path = Path(args.config)
+    with open(config_path) as f:
+        raw = yaml.safe_load(f)
+
+    trades_cfg = raw.get("trades", {})
+    params = trades_cfg.get("parameters", {})
+
+    param_space: dict[str, tuple[float, float]] = {}
+    for name, bounds in params.items():
+        if isinstance(bounds, list) and len(bounds) == 2:
+            param_space[name] = (float(bounds[0]), float(bounds[1]))
+
+    if not param_space:
+        print("Error: no parameters defined in trades.parameters section", file=sys.stderr)
+        sys.exit(2)
+
+    n = args.n
+    metric = args.metric
+
+    print(f"Generating Saltelli samples (n={n}, params={len(param_space)})...")
+    cases_df = generate_saltelli_samples(param_space, n)
+    print(f"  Total samples: {len(cases_df)}")
+
+    # Run batch evaluation
+    from opensatcom.trades.batch import BatchRunner
+
+    runner = BatchRunner()
+    results_df = runner.run(cases_df, parallel=False)
+
+    if metric not in results_df.columns:
+        print(f"Error: metric '{metric}' not found in results. "
+              f"Available: {list(results_df.columns)}", file=sys.stderr)
+        sys.exit(2)
+
+    import numpy as np
+
+    results_arr = results_df[metric].to_numpy().astype(np.float64)
+
+    # Handle NaN values
+    nan_mask = np.isnan(results_arr)
+    if np.any(nan_mask):
+        print(f"  Warning: {int(np.sum(nan_mask))} NaN results replaced with 0")
+        results_arr = np.where(nan_mask, 0.0, results_arr)
+
+    sobol = compute_sobol_indices(param_space, results_arr, n)
+
+    print(f"\nSobol indices for '{metric}':")
+    print(f"  {'Parameter':<25} {'S1':>8} {'ST':>8}")
+    print(f"  {'-'*25} {'-'*8} {'-'*8}")
+    for i, name in enumerate(sobol.param_names):
+        print(f"  {name:<25} {sobol.S1[i]:>8.4f} {sobol.ST[i]:>8.4f}")
+
+    # Generate plot
+    fig = plot_sensitivity_bar(
+        sobol.param_names, sobol.S1, sobol.ST,
+        sobol.S1_conf, sobol.ST_conf,
+        metric_name=metric,
+    )
+    plot_path = config_path.parent / "sensitivity.html"
+    fig.write_html(str(plot_path))
+    print(f"\nSensitivity plot saved to: {plot_path}")
+
+
 def main() -> None:
     """CLI entry point — parse arguments and dispatch to subcommand handler."""
     parser = build_parser()
@@ -450,6 +617,7 @@ def main() -> None:
         "doe": cmd_doe,
         "batch": cmd_batch,
         "pareto": cmd_pareto,
+        "sensitivity": cmd_sensitivity,
     }
 
     handler = dispatch.get(args.command)

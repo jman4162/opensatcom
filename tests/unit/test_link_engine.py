@@ -63,8 +63,10 @@ class TestDefaultLinkEngine:
         assert out.breakdown is not None
         expected_keys = {
             "tx_power_dbw", "tx_losses_db", "tx_antenna_gain_dbi",
-            "eirp_dbw", "fspl_db", "rain_db", "gas_db", "pointing_db",
-            "rx_antenna_gain_dbi", "rx_system_temp_k",
+            "eirp_dbw", "fspl_db", "rain_attenuation_db",
+            "gaseous_absorption_db", "scintillation_db",
+            "total_path_loss_db", "polarization_loss_db",
+            "rx_antenna_gain_dbi", "rx_system_temp_k", "gt_dbk",
             "cn0_dbhz", "ebn0_db", "margin_db",
         }
         assert set(out.breakdown.keys()) == expected_keys

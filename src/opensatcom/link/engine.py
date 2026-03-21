@@ -7,6 +7,7 @@ import numpy as np
 from opensatcom.core.constants import BOLTZMANN_DBW_PER_K_HZ
 from opensatcom.core.models import LinkInputs, LinkOutputs, PropagationConditions
 from opensatcom.core.units import lin_to_db10, w_to_dbw
+from opensatcom.link.polarization import polarization_loss_db
 
 
 class DefaultLinkEngine:
@@ -75,6 +76,20 @@ class DefaultLinkEngine:
             sc.freq_hz, elev_deg, range_m, cond
         )
 
+        # 4a. Per-component losses for breakdown
+        from opensatcom.propagation.composite import CompositePropagation
+
+        component_losses: dict[str, float] = {}
+        if isinstance(inputs.propagation, CompositePropagation):
+            component_losses = inputs.propagation.per_component_losses_db(
+                sc.freq_hz, elev_deg, range_m, cond
+            )
+
+        # 4b. Polarization mismatch loss
+        tx_pol = sc.polarization
+        rx_pol = getattr(sc, "rx_polarization", None) or tx_pol
+        pol_loss_db = polarization_loss_db(tx_pol, rx_pol)
+
         # 5. RX antenna gain
         rx_gain_dbi = float(inputs.rx_antenna.gain_dbi(theta, phi, sc.freq_hz)[0])
 
@@ -89,18 +104,14 @@ class DefaultLinkEngine:
         # 7. G/T
         gt_dbk = rx_gain_dbi - lin_to_db10(tsys_k)
 
-        # 8. C/N0 = EIRP - path_loss + G/T - k_boltzmann
-        # k_boltzmann is negative in dBW/(K*Hz), so subtracting it adds
-        cn0_dbhz = eirp_dbw - path_loss_db + gt_dbk - BOLTZMANN_DBW_PER_K_HZ
+        # 8. C/N0 = EIRP - path_loss - pol_loss + G/T - k_boltzmann
+        cn0_dbhz = eirp_dbw - path_loss_db - pol_loss_db + gt_dbk - BOLTZMANN_DBW_PER_K_HZ
 
         # 9. Eb/N0 = C/N0 - 10*log10(Rb)
-        # Compute data rate from bandwidth and spectral efficiency if modem present,
-        # otherwise use full bandwidth as bit rate proxy
         data_rate_bps = sc.bandwidth_hz
         if inputs.modem is not None:
-            # Use modem to compute throughput later; for Eb/N0 use actual data rate
             modem_result = inputs.modem.throughput_mbps(
-                cn0_dbhz - lin_to_db10(sc.bandwidth_hz),  # rough ebn0 estimate
+                cn0_dbhz - lin_to_db10(sc.bandwidth_hz),
                 sc.bandwidth_hz,
                 0.0,
             )
@@ -124,18 +135,21 @@ class DefaultLinkEngine:
             )
             throughput_mbps = modem_result["throughput_mbps"]
 
-        # 12. Breakdown dict
+        # 12. Itemized breakdown dict
         breakdown: dict[str, float] = {
             "tx_power_dbw": tx_power_dbw,
             "tx_losses_db": tx_losses_db,
             "tx_antenna_gain_dbi": tx_gain_dbi,
             "eirp_dbw": eirp_dbw,
-            "fspl_db": path_loss_db,
-            "rain_db": 0.0,
-            "gas_db": 0.0,
-            "pointing_db": 0.0,
+            "fspl_db": component_losses.get("fspl_db", path_loss_db),
+            "rain_attenuation_db": component_losses.get("rain_attenuation_db", 0.0),
+            "gaseous_absorption_db": component_losses.get("gaseous_absorption_db", 0.0),
+            "scintillation_db": component_losses.get("scintillation_db", 0.0),
+            "total_path_loss_db": path_loss_db,
+            "polarization_loss_db": pol_loss_db,
             "rx_antenna_gain_dbi": rx_gain_dbi,
             "rx_system_temp_k": tsys_k,
+            "gt_dbk": gt_dbk,
             "cn0_dbhz": cn0_dbhz,
             "ebn0_db": ebn0_db,
             "margin_db": margin_db,

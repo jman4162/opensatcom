@@ -1,4 +1,4 @@
-"""Trade study tools: DOE, batch evaluation, Pareto analysis."""
+"""Trade study tools: DOE, batch evaluation, Pareto analysis, sensitivity."""
 
 from opensatcom.trades.batch import BatchRunner
 from opensatcom.trades.doe import DesignOfExperiments
