@@ -27,7 +27,7 @@ def build_parser() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         prog="opensatcom",
-        description="Professional-grade satellite communications engineering toolkit",
+        description="Open-source satellite communications engineering toolkit",
     )
     parser.add_argument("--version", action="version", version="%(prog)s 0.5.0")
 

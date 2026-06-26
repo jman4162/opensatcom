@@ -7,7 +7,7 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![mypy](https://img.shields.io/badge/type--checked-mypy-blue.svg)](https://mypy-lang.org/)
 
-Professional-grade, open-source Python toolkit for satellite communications engineering.
+Open-source Python toolkit for satellite communications engineering.
 
 Maps **antenna + RF chain + propagation + mission time-series** to **link margin & capacity**, with reproducible, trade-study-ready outputs.
 

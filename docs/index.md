@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/jman4162/opensatcom/blob/main/LICENSE)
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://jman4162.github.io/opensatcom/)
 
-**Professional-grade, open-source Python toolkit for satellite communications engineering.**
+**Open-source Python toolkit for satellite communications engineering.**
 
 Maps **antenna + RF chain + propagation + mission time-series** to **link margin & capacity**, with reproducible, trade-study-ready outputs.
 

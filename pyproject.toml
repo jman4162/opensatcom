@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "opensatcom"
 version = "0.5.0"
-description = "Professional-grade open-source Python toolkit for satellite communications engineering"
+description = "Open-source Python toolkit for satellite communications engineering"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"

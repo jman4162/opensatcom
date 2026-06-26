@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-OpenSatCom is a professional-grade, open-source Python toolkit for satellite communications engineering. It maps **antenna + RF chain + propagation + mission time-series → link margin & capacity**, with reproducible, trade-study-ready outputs.
+OpenSatCom is an open-source Python toolkit for satellite communications engineering. It maps **antenna + RF chain + propagation + mission time-series → link margin & capacity**, with reproducible, trade-study-ready outputs.
 
 OpenSatCom is a **domain + glue layer** — it does not reimplement engines. It integrates with:
 - **PAM** (phased-array-modeling): optional phased-array pattern synthesis (analytic fallback when not installed)

@@ -1,3 +1,3 @@
-"""OpenSatCom: Professional-grade satellite communications engineering toolkit."""
+"""OpenSatCom: Open-source satellite communications engineering toolkit."""
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
